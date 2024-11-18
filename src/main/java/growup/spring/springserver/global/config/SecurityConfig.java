@@ -83,7 +83,7 @@ public class SecurityConfig {
                 HttpMethod.DELETE.name(),
                 HttpMethod.OPTIONS.name()
         );
-        List<String> ipList = List.of("http://localhost:8000","http://localhost:3000");
+        List<String> ipList = List.of("http://localhost:8000", "http://localhost:3000", "https://grou-up.vercel.app");
 
         config.setAllowCredentials(true);
         config.setAllowedMethods(httpMethodList);
