@@ -1,5 +1,7 @@
 package growup.spring.springserver.global.common;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -9,6 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Getter
 @ToString
+@Hidden
 public class CommonResponse<T> implements Serializable {
     private final String message;
     private final T result;

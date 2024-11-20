@@ -6,6 +6,7 @@ import growup.spring.springserver.login.dto.request.LoginSignInReqDto;
 import growup.spring.springserver.login.dto.request.LoginSignUpReqDto;
 import growup.spring.springserver.login.dto.response.LoginResDto;
 import growup.spring.springserver.login.service.MemberService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "멤버 관리", description = "멤버 관련 API")
 @RestController
 @Slf4j
 @RequestMapping("/api/members")
