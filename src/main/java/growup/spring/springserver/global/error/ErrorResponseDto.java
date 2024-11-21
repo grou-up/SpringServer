@@ -43,7 +43,10 @@ public class ErrorResponseDto {
 
     // Security filter용 메서드
     public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
-        ResponseEntity<ErrorResponseDto> errorResponse = ErrorResponseDto.of(status, message);
+        ErrorResponseDto errorResponse = ErrorResponseDto.builder()
+                .status(status)
+                .errorMessage(message)
+                .build();
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
