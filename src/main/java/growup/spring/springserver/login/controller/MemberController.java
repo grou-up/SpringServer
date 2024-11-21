@@ -62,7 +62,7 @@ public class MemberController {
 
         return new ResponseEntity<>(CommonResponse
                 .<String>builder("member successfully created")
-                .result(loginCreateReqDto.email())
+                .data(loginCreateReqDto.email())
                 .build(), HttpStatus.CREATED);
     }
 
@@ -82,7 +82,7 @@ public class MemberController {
 
         return new ResponseEntity<>(CommonResponse
                 .<LoginResDto>builder("login success")
-                .result(loginresDto)
+                .data(loginresDto)
                 .build(), HttpStatus.CREATED);
     }
 }
