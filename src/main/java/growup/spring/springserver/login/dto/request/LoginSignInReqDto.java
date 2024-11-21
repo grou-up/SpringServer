@@ -3,7 +3,6 @@ package growup.spring.springserver.login.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 
 @Schema(title = "MEM_REQ_01 : 로그인 요청 DTO")
@@ -15,7 +14,7 @@ public record LoginSignInReqDto(
 
         @NotBlank
         @Schema(description = "비밀번호", example = "test123!")
-        @Pattern(regexp="(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}",
-                message = "비밀번호는 영문 대,소문자와 숫자, 특수기호가 적어도 1개 이상씩 포함된 8자 ~ 20자의 비밀번호여야 합니다.")
+        @Pattern(regexp="^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[A-Za-z\\d]{8,20}$|^(?=.*\\d)(?=.*[a-z])(?=.*[!#$%’()*+,./:;?@\\^_{|}~-])[a-z\\d!#$%’()*+,./:;?@\\^_{|}~-]{8,20}$|^(?=.*\\d)(?=.*[A-Z])(?=.*[!#$%’()*+,./:;?@\\^_{|}~-])[A-Z\\d!#$%’()*+,./:;?@\\^_{|}~-]{8,20}$|^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!#$%’()*+,./:;?@\\^_{|}~-])[A-Za-z\\d!#$%’()*+,./:;?@\\^_{|}~-]{8,20}$|^(?=.*[a-z])(?=.*[A-Z])(?=.*[!#$%’()*+,./:;?@\\^_{|}~-])[A-Za-z!#$%’()*+,./:;?@\\^_{|}~-]{8,20}$",
+                message = "비밀번호는 영어 대,소문자와 숫자, 특수기호 중 적어도 3가지가 포함된 9자 ~ 20자로 이루어져야 합니다.")
         String password
         ){}
