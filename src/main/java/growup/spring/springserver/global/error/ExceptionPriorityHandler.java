@@ -21,7 +21,7 @@ public class ExceptionPriorityHandler {
 
     @ExceptionHandler({BindException.class})
     @Order(value = Ordered.HIGHEST_PRECEDENCE) // 최우선 순위
-    public ResponseEntity<Map<String, Object>> handleBindException(BindException ex) {
+    public ResponseEntity<ErrorResponseDto> handleBindException(BindException ex) {
         // 에러 메시지 추출
         List<String> errorMessages = ex.getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
@@ -32,6 +32,6 @@ public class ExceptionPriorityHandler {
         String combinedErrorMessage = String.join(", ", errorMessages);
 
         // ErrorResponseDto를 통해 응답 생성
-        return ErrorResponseDto.makeMessage(HttpStatus.BAD_REQUEST, combinedErrorMessage);
+        return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, combinedErrorMessage);
     }
 }

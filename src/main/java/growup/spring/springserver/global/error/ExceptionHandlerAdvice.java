@@ -15,21 +15,21 @@ import java.util.Map;
 public class ExceptionHandlerAdvice {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> entityNotFoundHandler(EntityNotFoundException e) {
+    public ResponseEntity<ErrorResponseDto> entityNotFoundHandler(EntityNotFoundException e) {
         log.error("Handler EntityNotFoundException message: {}", e.getMessage());
-        return ErrorResponseDto.makeMessage(HttpStatus.NOT_FOUND, e.getMessage());
+        return ErrorResponseDto.of(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> illegalArgumentHandler(IllegalArgumentException e) {
+    public ResponseEntity<ErrorResponseDto> illegalArgumentHandler(IllegalArgumentException e) {
         log.error("Handler IllegalArgumentException message: {}", e.getMessage());
-        return ErrorResponseDto.makeMessage(HttpStatus.BAD_REQUEST, e.getMessage());
+        return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)
-    public ResponseEntity<Map<String, Object>> unsupportedOperationHandler(UnsupportedOperationException e) {
+    public ResponseEntity<ErrorResponseDto> unsupportedOperationHandler(UnsupportedOperationException e) {
         log.error("Handler UnsupportedOperationException message: {}", e.getMessage());
-        return ErrorResponseDto.makeMessage(HttpStatus.BAD_REQUEST, e.getMessage());
+        return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 }
 
