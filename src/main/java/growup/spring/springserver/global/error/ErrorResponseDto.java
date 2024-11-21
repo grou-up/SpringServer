@@ -1,41 +1,52 @@
 package growup.spring.springserver.global.error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import growup.spring.springserver.global.domain.Record;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Builder;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
+@Schema(description = "Error Response")
 public class ErrorResponseDto {
-    // Private constructor to prevent instantiation
-    // 기본 생성자가 자동으로 생성되는 것을 막는다.
-    private ErrorResponseDto() {
-        throw new UnsupportedOperationException("Utility class");
+    @Schema(description = "HTTP 상태 코드")
+    private final String status;
+
+    @Schema(description = "상태 메시지")
+    private final String statusMessage;
+
+    @Schema(description = "에러 메시지")
+    private final String errorMessage;
+
+    @Builder
+    private ErrorResponseDto(HttpStatus status, String errorMessage) {
+        this.status = String.valueOf(status.value());
+        this.statusMessage = status.getReasonPhrase();
+        this.errorMessage = errorMessage;
     }
 
-    public static ResponseEntity<Map<String, Object>> makeMessage(HttpStatus status, String Message) {
-        HashMap<String, Object> body = new HashMap<>();
-        body.put("status", Integer.toString(status.value()));
-        body.put("status_message", status.getReasonPhrase());
-        body.put("error_message", Message);
-
-        return new ResponseEntity<>(body, status);
+    public static ResponseEntity<ErrorResponseDto> of(HttpStatus status, String errorMessage) {
+        return new ResponseEntity<>(ErrorResponseDto.builder()
+                .status(status)
+                .errorMessage(errorMessage)
+                .build(), status);
     }
 
-//    security error response
-    public static void writeErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException, IOException {
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", Integer.toString(status.value()));
-        body.put("status_message", status.getReasonPhrase());
-        body.put("error_message", message);
-
+    // Security filter용 메서드
+    public static void writeToResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        ResponseEntity<ErrorResponseDto> errorResponse = ErrorResponseDto.of(status, message);
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        new ObjectMapper().writeValue(response.getWriter(), body);
+        new ObjectMapper().writeValue(response.getWriter(), errorResponse);
     }
 }

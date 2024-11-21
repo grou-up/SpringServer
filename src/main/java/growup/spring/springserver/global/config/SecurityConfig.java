@@ -99,7 +99,13 @@ public class SecurityConfig {
     private static final String[] LoginApiUrl = {
             "/api/members/signup",
             "/api/members/test",
-            "/api/members/login"
+            "/api/members/login",
+            "/v3/api-docs/**",          // OpenAPI 문서 JSON
+            "/v3/api-docs.yaml",        // OpenAPI 문서 YAML 형식
+            "/swagger-ui/**",           // Swagger UI 웹 페이지 리소스
+            "/swagger-ui.html",         // Swagger UI 메인 페이지
+            "/swagger-resources/**",    // Swagger 리소스
+            "/webjars/**"               // Swagger UI에서 사용하는 웹 자원들
     };
 
 //    401

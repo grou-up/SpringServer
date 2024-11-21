@@ -14,7 +14,7 @@ public class UserAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        ErrorResponseDto.writeErrorResponse(response, HttpStatus.FORBIDDEN, accessDeniedException.getMessage());
+        ErrorResponseDto.writeToResponse(response, HttpStatus.FORBIDDEN, accessDeniedException.getMessage());
         log.warn("Forbidden error occurred: {}", accessDeniedException.getMessage());
     }
 }
