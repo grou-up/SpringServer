@@ -1,4 +1,4 @@
-package growup.spring.springserver.global.domain;
+package growup.spring.springserver.record.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

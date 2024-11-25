@@ -1,6 +1,6 @@
 package growup.spring.springserver.login.domain;
 
-import growup.spring.springserver.global.domain.Record;
+import growup.spring.springserver.record.domain.Record;
 import growup.spring.springserver.global.support.Role;
 import jakarta.persistence.*;
 import lombok.*;

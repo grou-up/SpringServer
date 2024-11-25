@@ -1,7 +1,6 @@
 package growup.spring.springserver.global.error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import growup.spring.springserver.global.domain.Record;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Builder;
@@ -9,11 +8,8 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Getter
 @Schema(description = "Error Response")
