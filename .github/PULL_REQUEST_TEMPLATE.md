@@ -1,19 +1,3 @@
-<script>
-window.addEventListener('DOMContentLoaded', (event) => {
-    // 브랜치 이름에서 이슈 번호 추출
-    const branchName = document.querySelector('.commit-ref').textContent;
-    const match = branchName.match(/GROU-(\d+)/);
-    
-    if (match) {
-        const issueNumber = match[1];
-        const titleInput = document.getElementById('pull_request_title');
-        if (titleInput && !titleInput.value.includes(`[GROU-${issueNumber}]`)) {
-            titleInput.value = `[GROU-${issueNumber}] ${titleInput.value}`;
-        }
-    }
-});
-</script>
-
 ## 📌 변경사항
 <!-- 변경사항에 대한 요약을 작성해주세요 -->
 - 

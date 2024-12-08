@@ -1,0 +1,31 @@
+name: PR Title Check and Update
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  update-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check and Update PR Title
+        run: |
+          PR_BRANCH="${{ github.head_ref }}"
+          echo "PR branch: $PR_BRANCH"
+          
+          # 브랜치 이름에서 GROU-XX 추출
+          ISSUE_KEY=$(echo $PR_BRANCH | grep -oP 'GROU-\d+')
+          echo "Found issue key: $ISSUE_KEY"
+          
+          if [ ! -z "$ISSUE_KEY" ]; then
+            CURRENT_TITLE="${{ github.event.pull_request.title }}"
+            if [[ $CURRENT_TITLE != \[GROU-* ]]; then
+              NEW_TITLE="[$ISSUE_KEY] $CURRENT_TITLE"
+          
+              # GitHub API를 통해 PR 제목 업데이트
+              curl -X PATCH \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                -d "{\"title\":\"$NEW_TITLE\"}"
+            fi
+          fi
