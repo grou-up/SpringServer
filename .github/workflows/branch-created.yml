@@ -33,8 +33,5 @@ jobs:
             -H "Content-Type: application/json" \
             ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
             -d '{
-              "transition": {"id": "2"},
-              "fields": {
-                "assignee": {"name": "${{ github.actor }}"}
-              }
+              "transition": {"id": "2"}
             }'
