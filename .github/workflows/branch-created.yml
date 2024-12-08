@@ -18,12 +18,13 @@ jobs:
           echo "Extracted issue key: $ISSUE_KEY"
           echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
 
-      - name: Get Available Transitions
-        run: |
-          curl -v -L -X GET \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions"
+#      작업 ID를 확인하고 싶을 때 사용
+#      - name: Get Available Transitions
+#        run: |
+#          curl -v -L -X GET \
+#            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+#            -H "Content-Type: application/json" \
+#            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions"
 
       - name: Update Jira Status
         run: |
@@ -32,7 +33,7 @@ jobs:
             -H "Content-Type: application/json" \
             ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
             -d '{
-              "transition": {"name": "작업 중"},
+              "transition": {"id": "2"},
               "fields": {
                 "assignee": {"name": "${{ github.actor }}"}
               }
