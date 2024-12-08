@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [opened, edited, closed]
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   process-pr:
     runs-on: ubuntu-latest
