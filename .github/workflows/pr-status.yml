@@ -1,0 +1,33 @@
+name: PR Status Update
+on:
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  update-jira:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Jira Issue
+        id: extract
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          ISSUE_KEY=$(echo $PR_TITLE | grep -oP '([A-Z]+-\d+)')
+          echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
+
+      - name: Update to QA
+        if: github.event.action == 'opened'
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"name": "QA"}}'
+
+      - name: Update to Work Complete
+        if: github.event.pull_request.merged == true
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"name": "작업 완료"}}'
