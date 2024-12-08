@@ -42,7 +42,7 @@ jobs:
               -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
               -H "Content-Type: application/json" \
               ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"name": "오류"}}'
+              -d '{"transition": {"id": "10"}}'
             exit 1
           fi
 
@@ -55,7 +55,7 @@ jobs:
               -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
               -H "Content-Type: application/json" \
               ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"name": "오류"}}'
+              -d '{"transition": {"id": "10"}}'
             exit 1
           fi
 
@@ -71,7 +71,7 @@ jobs:
               -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
               -H "Content-Type: application/json" \
               ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"name": "오류"}}'
+              -d '{"transition": {"id": "10"}}'
             exit 1
           fi
 
@@ -97,7 +97,7 @@ jobs:
             -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"name": "작업 완료"}}'
+            -d '{"transition": {"id": "8"}}'
 
 #      # 실패 알림 (선택사항)
 #      - name: Notify Error
