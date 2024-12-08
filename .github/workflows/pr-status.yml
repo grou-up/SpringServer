@@ -7,7 +7,6 @@ jobs:
   process-pr:
     runs-on: ubuntu-latest
     steps:
-      # 1. PR 제목 업데이트
       - name: Check and Update PR Title
         id: update-title
         run: |
@@ -19,8 +18,9 @@ jobs:
           
           if [ ! -z "$ISSUE_KEY" ]; then
             CURRENT_TITLE="${{ github.event.pull_request.title }}"
-            if [[ $CURRENT_TITLE != \[GROU-* ]]; then
+            if [[ ! "$CURRENT_TITLE" =~ ^\[GROU-[0-9]+\] ]]; then
               NEW_TITLE="[$ISSUE_KEY] $CURRENT_TITLE"
+              echo "Updating title to: $NEW_TITLE"
           
               curl -X PATCH \
                 -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -41,7 +41,7 @@ jobs:
         run: |
           TITLE="${{ steps.update-title.outputs.title }}"
           echo "Processing title: $TITLE"
-          ISSUE_KEY=$(echo $TITLE | grep -oP '\[?(GROU-\d+)\]?')
+          ISSUE_KEY=$(echo $TITLE | grep -oP 'GROU-\d+')
           echo "Extracted Issue Key: $ISSUE_KEY"
           echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
 
