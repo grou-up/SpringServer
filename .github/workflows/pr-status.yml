@@ -1,33 +1,66 @@
-name: PR Status Update
+name: PR Title and Status Update
 on:
   pull_request:
-    types: [opened, closed]
+    types: [opened, edited, closed]
 
 jobs:
-  update-jira:
+  process-pr:
     runs-on: ubuntu-latest
     steps:
+      # 1. PR 제목 업데이트
+      - name: Check and Update PR Title
+        id: update-title
+        run: |
+          PR_BRANCH="${{ github.head_ref }}"
+          echo "PR branch: $PR_BRANCH"
+          
+          ISSUE_KEY=$(echo $PR_BRANCH | grep -oP 'GROU-\d+')
+          echo "Found issue key: $ISSUE_KEY"
+          
+          if [ ! -z "$ISSUE_KEY" ]; then
+            CURRENT_TITLE="${{ github.event.pull_request.title }}"
+            if [[ $CURRENT_TITLE != \[GROU-* ]]; then
+              NEW_TITLE="[$ISSUE_KEY] $CURRENT_TITLE"
+          
+              curl -X PATCH \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                -d "{\"title\":\"$NEW_TITLE\"}"
+          
+              echo "title=$NEW_TITLE" >> $GITHUB_OUTPUT
+            else
+              echo "title=$CURRENT_TITLE" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      # 2. Jira 상태 업데이트
       - name: Extract Jira Issue
         id: extract
+        if: success()
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          ISSUE_KEY=$(echo $PR_TITLE | grep -oP '([A-Z]+-\d+)')
+          TITLE="${{ steps.update-title.outputs.title }}"
+          echo "Processing title: $TITLE"
+          ISSUE_KEY=$(echo $TITLE | grep -oP '\[?(GROU-\d+)\]?')
+          echo "Extracted Issue Key: $ISSUE_KEY"
           echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
 
       - name: Update to QA
-        if: github.event.action == 'opened'
+        if: github.event.action == 'opened' && success()
         run: |
-          curl -X POST \
+          echo "Updating issue ${{ steps.extract.outputs.issue }} to QA"
+          curl -v -X POST \
             -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions" \
             -d '{"transition": {"id": "7"}}'
 
       - name: Update to Work Complete
-        if: github.event.pull_request.merged == true
+        if: github.event.pull_request.merged == true && success()
         run: |
-          curl -X POST \
+          echo "Updating issue ${{ steps.extract.outputs.issue }} to Work Complete"
+          curl -v -X POST \
             -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions" \
             -d '{"transition": {"id": "8"}}'
