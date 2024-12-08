@@ -18,11 +18,12 @@ jobs:
           echo "Extracted issue key: $ISSUE_KEY"
           echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
 
-      - name: Debug Info
+      - name: Get Available Transitions
         run: |
-          echo "Github Actor: ${{ github.actor }}"
-          echo "Jira Base URL: ${{ secrets.JIRA_BASE_URL }}"
-          echo "Issue Key: ${{ steps.extract.outputs.issue }}"
+          curl -v -L -X GET \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions"
 
       - name: Update Jira Status
         run: |
@@ -31,7 +32,7 @@ jobs:
             -H "Content-Type: application/json" \
             ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
             -d '{
-              "transition": {"name": "QA"},
+              "transition": {"name": "작업 중"},
               "fields": {
                 "assignee": {"name": "${{ github.actor }}"}
               }
