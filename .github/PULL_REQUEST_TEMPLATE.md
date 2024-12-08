@@ -16,22 +16,3 @@
 
 ## 📸 Screenshots
 <!-- UI 변경사항이 있다면 스크린샷을 첨부해주세요 -->
-
-
-<!-- 
-아래 내용은 자동으로 채워집니다. 수정하지 마세요.
-브랜치명이 'feature/PROJ-123-description' 형식이라면,
-PR 생성 시 자동으로 [PROJ-123]이 제목에 추가됩니다.
--->
-<script>
-window.addEventListener('DOMContentLoaded', (event) => {
-    const branchName = document.querySelector('.commit-ref').textContent;
-    const jiraKey = branchName.match(/(?:feature|bugfix)\/([A-Z]+-\d+)/)?.[1];
-    if (jiraKey) {
-        const titleInput = document.getElementById('pull_request_title');
-        if (!titleInput.value.includes(jiraKey)) {
-            titleInput.value = `[${jiraKey}] ${titleInput.value}`;
-        }
-    }
-});
-</script>
