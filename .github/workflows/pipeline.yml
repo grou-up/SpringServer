@@ -71,34 +71,46 @@ jobs:
               sudo usermod -aG docker $USER
             fi
             
-            echo '${{ secrets.DOCKER_PASSWORD }}' | sudo docker login -u '${{ secrets.DOCKER_USERNAME }}' --password-stdin
+            cat << 'EOF' > docker_password.txt
+            ${{ secrets.DOCKER_PASSWORD }}
+            
+            EOF
+            
+            cat docker_password.txt | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            rm docker_password.txt
             
             if sudo docker ps -a | grep -q spring-app; then
-              echo "Backing up existing container logs..."
-              sudo docker logs spring-app > spring-app.log 2>&1 || true
-              sudo docker stop spring-app || true
-              sudo docker rm spring-app || true
+            echo "Backing up existing container logs..."
+            sudo docker logs spring-app > spring-app.log 2>&1 || true
+            sudo docker stop spring-app || true
+            sudo docker rm spring-app || true
             fi
             
-            sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+            cat << 'EOF' > env.list
+            DATASOURCE_URL=${{ secrets.DATASOURCE_URL }}
+            DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }}
+            DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            EOF
+            
+            sudo docker pull "${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}"
             sudo docker run -d \
-              --name spring-app \
-              -p 8080:8080 \
-              -e DATASOURCE_URL="${{ secrets.DATASOURCE_URL }}" \
-              -e DATASOURCE_USERNAME="${{ secrets.DATASOURCE_USERNAME }}" \
-              -e DATASOURCE_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}" \
-              -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
-              ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+            --name spring-app \
+            -p 8080:8080 \
+            --env-file env.list \
+            "${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}"
+            
+            rm env.list
             
             sleep 10
             if ! sudo docker ps | grep -q spring-app; then
-              echo "Container failed to start"
-              exit 1
+            echo "Container failed to start"
+            exit 1
             fi
             
             if ! netstat -tuln | grep -q ':8080'; then
-              echo "Application port 8080 is not open"
-              exit 1
+            echo "Application port 8080 is not open"
+            exit 1
             fi
 
   update-jira:

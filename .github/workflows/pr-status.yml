@@ -57,13 +57,3 @@ jobs:
             -H "Content-Type: application/json" \
             "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions" \
             -d '{"transition": {"id": "7"}}'
-
-      - name: Update to Work Complete
-        if: github.event.pull_request.merged == true && success()
-        run: |
-          echo "Updating issue ${{ steps.extract.outputs.issue }} to Work Complete"
-          curl -v -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions" \
-            -d '{"transition": {"id": "8"}}'
