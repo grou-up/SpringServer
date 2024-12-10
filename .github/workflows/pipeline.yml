@@ -27,16 +27,9 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Update Jira Status on Failure
-        if: failure()
-        run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
-
       - name: Build and Test with Gradle
+        id: build
+        continue-on-error: true
         env:
           DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
           DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
@@ -46,8 +39,20 @@ jobs:
           chmod +x gradlew
           ./gradlew bootJar
 
+      - name: Handle Build Failure
+        if: steps.build.outcome == 'failure'
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
+          exit 1
+
       - name: Build and Push Docker Image
-        if: success()
+        id: docker
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
         env:
           DOCKER_IMAGE: ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
         run: |
@@ -55,27 +60,90 @@ jobs:
           docker build -t $DOCKER_IMAGE .
           docker push $DOCKER_IMAGE
 
-      - name: Deploy to EC2
-        if: success()
+      - name: Handle Docker Failure
+        if: steps.docker.outcome == 'failure'
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
+          exit 1
+
+      - name: Install Docker on EC2
+        id: install_docker
+        if: steps.docker.outcome == 'success'
+        continue-on-error: true
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
-            docker stop spring-app || true
-            docker rm spring-app || true
-            docker run -d --name spring-app \
+            if ! command -v docker &> /dev/null; then
+              sudo apt-get update
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+            fi
+
+      - name: Handle Docker Installation Failure
+        if: steps.install_docker.outcome == 'failure'
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
+          exit 1
+
+      - name: Deploy to EC2
+        id: deploy
+        if: steps.install_docker.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 이전 명령어의 성공 여부를 확인하기 위한 변수
+            set -e
+            
+            # Docker 로그인
+            echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            
+            # 이미지 pull 및 컨테이너 실행
+            sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+            sudo docker stop spring-app || true
+            sudo docker rm spring-app || true
+            sudo docker run -d --name spring-app \
               -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
               -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
               -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
               -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
               -p 8080:8080 \
               ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+            
+            # 컨테이너가 실행 중인지 확인
+            if ! sudo docker ps | grep -q spring-app; then
+              echo "Container failed to start"
+              exit 1
+            fi
+
+      - name: Handle Deploy Failure
+        if: steps.deploy.outcome == 'failure'
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
+          exit 1
 
       - name: Update to Work Complete
-        if: success()
+        if: steps.deploy.outcome == 'success'
         run: |
           curl -X POST \
             -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
@@ -84,7 +152,7 @@ jobs:
             -d '{"transition": {"id": "8"}}'
 
       - name: Delete branch
-        if: success()
+        if: steps.deploy.outcome == 'success'
         uses: dawidd6/action-delete-branch@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
