@@ -115,23 +115,42 @@ jobs:
             exit 1
             fi
 
+    outputs:
+      jira_issue: ${{ steps.extract.outputs.issue }}
+      branch_name: ${{ steps.extract.outputs.branch_name }}
+    steps:
+      - name: Extract Jira Issue
+        id: extract
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          ISSUE_KEY=$(echo $PR_TITLE | grep -oP 'GROU-\d+')
+          if [ -z "$ISSUE_KEY" ]; then
+            echo "No Jira issue found in PR title"
+            exit 1
+          fi
+          echo "Found Jira issue: $ISSUE_KEY"
+          echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
+          echo "branch_name=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+
   update-jira:
-    needs: deploy
+    needs: [build, deploy]
+    if: success()
     runs-on: ubuntu-latest
     steps:
       - name: Update Jira and Cleanup
         run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ needs.build.outputs.jira_issue }}/transitions \
-            -d '{"transition": {"id": "8"}}'
-
-      - name: Delete branch
-        uses: dawidd6/action-delete-branch@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ needs.build.outputs.branch_name }}
+          ISSUE_KEY="${{ needs.build.outputs.jira_issue }}"
+          if [ -n "$ISSUE_KEY" ]; then
+            echo "Updating Jira issue: $ISSUE_KEY"
+            curl -X POST \
+              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/$ISSUE_KEY/transitions \
+              -d '{"transition": {"id": "8"}}'
+          else
+            echo "No Jira issue key found"
+            exit 1
+          fi
 
   handle-failure:
     needs: [build, deploy]
@@ -140,8 +159,15 @@ jobs:
     steps:
       - name: Update Jira Status on Failure
         run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ needs.build.outputs.jira_issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
+          ISSUE_KEY="${{ needs.build.outputs.jira_issue }}"
+          if [ -n "$ISSUE_KEY" ]; then
+            echo "Updating Jira issue: $ISSUE_KEY"
+            curl -X POST \
+              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/$ISSUE_KEY/transitions \
+              -d '{"transition": {"id": "4"}}'
+          else
+            echo "No Jira issue key found"
+            exit 1
+          fi
