@@ -68,12 +68,27 @@ jobs:
       - name: Build & Push Docker Image
         if: success()
         env:
-          DOCKER_IMAGE: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+          DOCKER_IMAGE: ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
         run: |
-          docker build -t $DOCKER_IMAGE .
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker push $DOCKER_IMAGE
-          if [ $? -ne 0 ]; then
+          if ! docker build -t $DOCKER_IMAGE .; then
+            curl -X POST \
+              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+              -d '{"transition": {"id": "10"}}'
+            exit 1
+          fi
+          
+          if ! echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin; then
+            curl -X POST \
+              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+              -d '{"transition": {"id": "10"}}'
+            exit 1
+          fi
+          
+          if ! docker push $DOCKER_IMAGE; then
             curl -X POST \
               -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
               -H "Content-Type: application/json" \
@@ -90,7 +105,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+            docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
             docker stop spring-app || true
             docker rm spring-app || true
             docker run -d --name spring-app \
@@ -99,7 +114,7 @@ jobs:
               -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
               -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
               -p 8080:8080 \
-              ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
+              ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
 
       - name: Update to Work Complete
         if: success()
