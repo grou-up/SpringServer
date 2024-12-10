@@ -120,7 +120,7 @@ jobs:
             exit 1
             fi
 
-  update-jira:
+  handle-success:
     needs: [build, deploy]
     if: success()
     runs-on: ubuntu-latest
@@ -139,6 +139,12 @@ jobs:
             echo "No Jira issue key found"
             exit 1
           fi
+
+      - name: Delete branch
+        uses: dawidd6/action-delete-branch@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ needs.build.outputs.branch_name }}
 
   handle-failure:
     needs: [build, deploy]
