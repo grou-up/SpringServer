@@ -38,7 +38,6 @@ jobs:
             fi
           fi
 
-      # 2. Jira 상태 업데이트
       - name: Extract Jira Issue
         id: extract
         if: success()
