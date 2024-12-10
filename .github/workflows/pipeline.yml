@@ -9,9 +9,12 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      jira_issue: ${{ steps.extract.outputs.issue }}
+      branch_name: ${{ steps.extract.outputs.branch_name }}
     steps:
       - name: Extract Jira Issue
         id: extract
@@ -31,9 +34,7 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build and Test with Gradle
-        id: build
-        continue-on-error: true
+      - name: Build with Gradle
         env:
           DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
           DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
@@ -43,41 +44,19 @@ jobs:
           chmod +x gradlew
           ./gradlew bootJar
 
-      - name: Handle Build Failure
-        if: steps.build.outcome == 'failure'
-        run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
-          exit 1
-
-      - name: Build and Push Docker Image
-        id: docker
-        if: steps.build.outcome == 'success'
-        continue-on-error: true
+      - name: Build Docker Image
         env:
           DOCKER_IMAGE: ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
         run: |
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker build -t $DOCKER_IMAGE .
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker push $DOCKER_IMAGE
 
-      - name: Handle Docker Failure
-        if: steps.docker.outcome == 'failure'
-        run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
-          exit 1
-
-      - name: Install Docker on EC2
-        id: install_docker
-        if: steps.docker.outcome == 'success'
-        continue-on-error: true
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Docker and Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -91,72 +70,64 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker $USER
             fi
-
-      - name: Handle Docker Installation Failure
-        if: steps.install_docker.outcome == 'failure'
-        run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
-          exit 1
-
-      - name: Deploy to EC2
-        id: deploy
-        if: steps.install_docker.outcome == 'success'
-        continue-on-error: true
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin << EOF
-            ${{ secrets.DOCKER_PASSWORD }}
-            EOF
+            
+            echo '${{ secrets.DOCKER_PASSWORD }}' | sudo docker login -u '${{ secrets.DOCKER_USERNAME }}' --password-stdin
+            
+            if sudo docker ps -a | grep -q spring-app; then
+              echo "Backing up existing container logs..."
+              sudo docker logs spring-app > spring-app.log 2>&1 || true
+              sudo docker stop spring-app || true
+              sudo docker rm spring-app || true
+            fi
             
             sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
-            
-            sudo docker stop spring-app || true
-            sudo docker rm spring-app || true
-            
             sudo docker run -d \
-            --name spring-app \
-            -p 8080:8080 \
-            -e DATASOURCE_URL="${{ secrets.DATASOURCE_URL }}" \
-            -e DATASOURCE_USERNAME="${{ secrets.DATASOURCE_USERNAME }}" \
-            -e DATASOURCE_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}" \
-            -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
-            ${{ secrets.DOCKER_REPOSITORY }}:"${{ github.sha }}"
+              --name spring-app \
+              -p 8080:8080 \
+              -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
+              -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
+              -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
+              -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
+              ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
             
+            sleep 10
             if ! sudo docker ps | grep -q spring-app; then
               echo "Container failed to start"
               exit 1
             fi
+            
+            if ! netstat -tuln | grep -q ':8080'; then
+              echo "Application port 8080 is not open"
+              exit 1
+            fi
 
-      - name: Handle Deploy Failure
-        if: steps.deploy.outcome == 'failure'
+  update-jira:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Jira and Cleanup
         run: |
           curl -X POST \
             -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{"transition": {"id": "4"}}'
-          exit 1
-
-      - name: Update to Work Complete
-        if: steps.deploy.outcome == 'success'
-        run: |
-          curl -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ needs.build.outputs.jira_issue }}/transitions \
             -d '{"transition": {"id": "8"}}'
 
       - name: Delete branch
-        if: steps.deploy.outcome == 'success'
         uses: dawidd6/action-delete-branch@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.extract.outputs.branch_name }}
+          branch: ${{ needs.build.outputs.branch_name }}
+
+  handle-failure:
+    needs: [build, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Jira Status on Failure
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ needs.build.outputs.jira_issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
