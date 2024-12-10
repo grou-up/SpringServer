@@ -20,7 +20,12 @@ jobs:
         id: extract
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
-          ISSUE_KEY=$(echo $PR_TITLE | grep -oP '([A-Z]+-\d+)')
+          ISSUE_KEY=$(echo $PR_TITLE | grep -oP 'GROU-\d+')
+          if [ -z "$ISSUE_KEY" ]; then
+            echo "No Jira issue found in PR title"
+            exit 1
+          fi
+          echo "Found Jira issue: $ISSUE_KEY"
           echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
           echo "branch_name=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
 
