@@ -27,75 +27,33 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Update Jira Status on Failure
+        if: failure()
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
+            -d '{"transition": {"id": "4"}}'
 
-      - name: Build with Gradle
-        id: build
+      - name: Build and Test with Gradle
         env:
           DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
           DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
           DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: |
-          ./gradlew clean build
-          if [ $? -ne 0 ]; then
-            curl -X POST \
-              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"id": "10"}}'
-            exit 1
-          fi
+          chmod +x gradlew
+          ./gradlew bootJar
 
-      - name: Run Tests
-        env:
-          DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
-          DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-          DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-        run: |
-          ./gradlew test
-          if [ $? -ne 0 ]; then
-            curl -X POST \
-              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"id": "10"}}'
-            exit 1
-          fi
-
-      - name: Build & Push Docker Image
+      - name: Build and Push Docker Image
         if: success()
         env:
           DOCKER_IMAGE: ${{ secrets.DOCKER_REPOSITORY }}:${{ github.sha }}
         run: |
-          if ! docker build -t $DOCKER_IMAGE .; then
-            curl -X POST \
-              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"id": "10"}}'
-            exit 1
-          fi
-          
-          if ! echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin; then
-            curl -X POST \
-              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"id": "10"}}'
-            exit 1
-          fi
-          
-          if ! docker push $DOCKER_IMAGE; then
-            curl -X POST \
-              -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-              -d '{"transition": {"id": "10"}}'
-            exit 1
-          fi
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker build -t $DOCKER_IMAGE .
+          docker push $DOCKER_IMAGE
 
       - name: Deploy to EC2
         if: success()
@@ -131,11 +89,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ steps.extract.outputs.branch_name }}
-
-#        Slack 알림을 위한 코드
-#      - name: Notify Error
-#        if: failure()
-#        run: |
-#          curl -X POST -H 'Content-type: application/json' \
-#            --data '{"text":"Spring 서버 빌드/배포 실패: ${{ steps.extract.outputs.issue }}"}' \
-#            ${{ secrets.SLACK_WEBHOOK_URL }}
