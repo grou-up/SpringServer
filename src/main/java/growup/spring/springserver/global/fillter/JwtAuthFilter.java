@@ -45,6 +45,7 @@ public class JwtAuthFilter extends GenericFilter {
                 log.info("Invalid JWT token: {} ", e.getMessage());
             }
         }
+        log.info("next");
         chain.doFilter(request, response);
     }
 
