@@ -1,9 +1,11 @@
 package growup.spring.springserver.global.config;
 
 
+import growup.spring.springserver.global.common.OAuth2AuthenticationSuccessHandler;
 import growup.spring.springserver.global.error.UserAccessDeniedHandler;
 import growup.spring.springserver.global.error.UserAuthenticationEntryPoint;
 import growup.spring.springserver.global.fillter.JwtAuthFilter;
+import growup.spring.springserver.login.service.Oauth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +40,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final Oauth2UserService oauth2UserService;
+    private final OAuth2AuthenticationSuccessHandler successHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -62,12 +66,16 @@ public class SecurityConfig {
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)  // JWT 필터 추가
 
-
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(LoginApiUrl).permitAll()
                         .anyRequest().authenticated()
-        );
-
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(successHandler) // 커스텀 성공 핸들러
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oauth2UserService) // 사용자 정보 서비스 등록
+                        )
+                );
         return httpSecurity.build();
     }
 
@@ -100,12 +108,14 @@ public class SecurityConfig {
             "/api/members/signup",
             "/api/members/test",
             "/api/members/login",
+            "/api/oauth/kakao/callback/**",
             "/v3/api-docs/**",          // OpenAPI 문서 JSON
             "/v3/api-docs.yaml",        // OpenAPI 문서 YAML 형식
             "/swagger-ui/**",           // Swagger UI 웹 페이지 리소스
             "/swagger-ui.html",         // Swagger UI 메인 페이지
             "/swagger-resources/**",    // Swagger 리소스
-            "/webjars/**"               // Swagger UI에서 사용하는 웹 자원들
+            "/webjars/**" ,              // Swagger UI에서 사용하는 웹 자원들
+            "/favicon.ico"
     };
 
 //    401

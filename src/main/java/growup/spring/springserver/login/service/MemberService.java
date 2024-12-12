@@ -39,8 +39,14 @@ public class MemberService {
     public LoginResDto login(LoginSignInReqDto loginSignInReqDto) {
         log.info("Check account validity");
         Member findmember = memberRepository.findByEmail(loginSignInReqDto.email())
-                .filter(it -> passwordEncoder.matches(loginSignInReqDto.password(), it.getPassword()))
-                .orElseThrow(() -> new IllegalArgumentException("account cannot be found"));
+                .filter(it -> {
+                    if (it.getPassword() == null || it.getPassword().isEmpty()) {
+                        // 비밀번호가 없는 경우, 카카오 계정으로 가입된 사용자
+                        throw new IllegalArgumentException("This account is registered with Kakao login.");
+                    }
+                    return passwordEncoder.matches(loginSignInReqDto.password(), it.getPassword());
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Account cannot be found"));
 
         String memberSpecification = String.format("%s:%s:%s", findmember.getEmail(), findmember.getName(), findmember.getRole());
 
