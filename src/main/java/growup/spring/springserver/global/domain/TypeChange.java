@@ -6,7 +6,6 @@ import growup.spring.springserver.login.dto.request.LoginSignUpReqDto;
 import growup.spring.springserver.login.dto.response.LoginResDto;
 import org.springframework.stereotype.Component;
 
-// reqdto, resdto change
 @Component
 public class TypeChange {
 
