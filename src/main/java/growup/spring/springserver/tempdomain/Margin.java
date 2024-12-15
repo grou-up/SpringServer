@@ -28,7 +28,7 @@ public class Margin {
     private Long marClicks;  // 클릭 수
     private Long marAdConversionSales;  // 광고 전환 판매 수
     private Long marActualSales;  // 실제 판매 수
-    private Long marAdMergeCount;  // 광고 머지 수
+    private Long marAdMargin;  // 광고 머진
     private Double marNetProfit;  // 순이익
 
     @ManyToOne
