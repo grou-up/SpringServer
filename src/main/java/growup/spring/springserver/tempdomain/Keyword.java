@@ -40,6 +40,7 @@ public class Keyword {
 
     private Boolean keyExcludeFlag = false;  // 제외여부
 
+    private String keySearchType;  // 검색 비검색
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
     private Campaign campaign;
