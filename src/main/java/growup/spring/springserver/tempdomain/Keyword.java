@@ -14,7 +14,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Keyword {
     @Id
-    private Long keywordId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String keyKeyword;  // 키워드
 
