@@ -1,8 +1,6 @@
 package growup.spring.springserver.login.domain;
 
-import growup.spring.springserver.record.domain.Record;
 import growup.spring.springserver.global.support.Role;
-import growup.spring.springserver.tempdomain.Campaign;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @EntityListeners(AuditingEntityListener.class)
 
