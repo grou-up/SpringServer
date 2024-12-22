@@ -3,6 +3,7 @@ package growup.spring.springserver.global.domain;
 import growup.spring.springserver.global.support.Role;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.dto.request.LoginSignUpReqDto;
+import growup.spring.springserver.login.dto.response.LoginDataResDto;
 import growup.spring.springserver.login.dto.response.LoginResDto;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,14 @@ public class TypeChange {
                 .email(findmember.getEmail())
                 .name(findmember.getName())
                 .accessToken(accessToken)
+                .build();
+    }
+
+    // 멤버 ID Role 반환
+    public LoginDataResDto MemberToMyEmailAndRoleDto(Member findmember) {
+        return LoginDataResDto.builder()
+                .email(findmember.getEmail())
+                .role(findmember.getRole().name())
                 .build();
     }
 }
