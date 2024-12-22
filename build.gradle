@@ -48,6 +48,8 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON parsing
 //    oauth2
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
 //    S3
 //    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.1.RELEASE'
 
