@@ -5,6 +5,7 @@ import growup.spring.springserver.global.domain.TypeChange;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.dto.request.LoginSignInReqDto;
 import growup.spring.springserver.login.dto.request.LoginSignUpReqDto;
+import growup.spring.springserver.login.dto.response.LoginDataResDto;
 import growup.spring.springserver.login.dto.response.LoginResDto;
 import growup.spring.springserver.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,12 @@ public class MemberService {
 
         log.info("ACCess token success");
         return typeChange.memberToLoginResDto(findmember, accessToken);
+    }
+
+    public LoginDataResDto getMyEmailAndRole(String email) {
+        Member member = memberRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("Account cannot be found"));
+
+        return typeChange.MemberToMyEmailAndRoleDto(member);
     }
 }
