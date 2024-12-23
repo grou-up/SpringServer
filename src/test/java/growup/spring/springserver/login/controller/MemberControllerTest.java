@@ -1,49 +1,73 @@
-//package growup.spring.springserver.login.controller;
-//
-//import growup.spring.springserver.login.domain.Member;
-//import growup.spring.springserver.login.repository.MemberRepository;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.TestMethodOrder;
-//import org.junit.jupiter.api.MethodOrderer;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.mockito.Mockito.*;
-//
-//@TestMethodOrder(MethodOrderer.DisplayName.class)
-//public class MemberControllerTest {
-//
-//    private static final Logger log = LoggerFactory.getLogger(MemberControllerTest.class);
-//    @Mock
-//    private MemberRepository memberRepository;
-//
-//    public MemberControllerTest() {
-//        MockitoAnnotations.openMocks(this); // Mock 초기화
-//    }
-//
-//    @DisplayName("멤버 객체 가져오기")
-//    @Test
-//    void 멤버_객체_가져오기() {
-//
-//        // Given: Mock 리포지토리에 저장된 멤버 객체 준비
-//        String email = "fa7273@naver.com";
-//
-//        when(memberRepository.findByEmail(email)).thenReturn(java.util.Optional.of(member));
-//
-//        // When: 리포지토리에서 이메일로 멤버 객체를 가져옴
-//        Member result = memberRepository.findByEmail(email).orElse(null);
-//
-//        // Then: 결과 검증
-//        assertThat(result).isNotNull();
-//        assertThat(result.getEmail()).isEqualTo(email);
-//        assertThat(result.getPassword()).isEqualTo("thdqhtjr123!!@");
-//        // Verify: 리포지토리 메서드 호출 검증
-//        verify(memberRepository, times(1)).findByEmail(email);
-//    }
-//
-//
-//}
+package growup.spring.springserver.login.controller;
+
+import com.nimbusds.jose.shaded.gson.Gson;
+import growup.spring.springserver.annotation.WithAuthUser;
+import growup.spring.springserver.global.config.JwtTokenProvider;
+import growup.spring.springserver.login.dto.response.LoginDataResDto;
+import growup.spring.springserver.login.service.MemberService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.ArrayList;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(MockitoExtension.class)
+@WebMvcTest(MemberController.class)
+public class MemberControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private MemberService memberService;
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
+    @Test
+    @DisplayName("getMyEmailAndRole : ErrorCase1.인가되지 않은 사용자 접근")
+    void test1() throws Exception {
+        final String url = "/api/members/getMyEmailAndRole";
+        final ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get(url));
+        resultActions.andDo(print()).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("getMyEmailAndRole : Success1.접근 성공")
+    @WithAuthUser
+    void test2() throws Exception {
+        Gson gson = new Gson();
+        final String url = "/api/members/getMyEmailAndRole";
+
+        LoginDataResDto mockResponse = new LoginDataResDto("fa7271@naver.com", "USER");
+        doReturn(mockResponse).when(memberService).getMyEmailAndRole(any());
+
+        // MockMvc 요청
+        final ResultActions resultActions = mockMvc.perform(
+                MockMvcRequestBuilders.get(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gson.toJson(new ArrayList<String>())));
+
+        // 응답 검증
+        resultActions.andExpectAll(
+                status().isOk(),
+                jsonPath("message").value("getMyEmailAndRole Success"), // "message" 필드 검증
+                jsonPath("data.email").value("fa7271@naver.com"),       // "data.email" 필드 검증
+                jsonPath("data.role").value("USER")                    // "data.role" 필드 검증
+        ).andDo(print());
+    }
+}
