@@ -1,22 +1,13 @@
-package growup.spring.springserver.tempdomain;
+package growup.spring.springserver.keyword.dto;
 
-import growup.spring.springserver.campaign.Campaign;
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDate;
 
-@EntityListeners(AuditingEntityListener.class)
-@Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Data
 @Builder
-@Getter
-@AllArgsConstructor
-public class Keyword {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class KeywordResponseDto {
 
     private String keyKeyword;  // 키워드
 
@@ -43,7 +34,4 @@ public class Keyword {
     private Boolean keyExcludeFlag = false;  // 제외여부
 
     private String keySearchType;  // 검색 비검색
-    @ManyToOne
-    @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
-    private Campaign campaign;
 }
