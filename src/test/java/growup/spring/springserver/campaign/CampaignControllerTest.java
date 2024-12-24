@@ -2,8 +2,10 @@ package growup.spring.springserver.campaign;
 
 import com.nimbusds.jose.shaded.gson.Gson;
 import growup.spring.springserver.annotation.WithAuthUser;
+import growup.spring.springserver.campaign.controller.CampaignController;
+import growup.spring.springserver.campaign.dto.CampaignResponseDto;
+import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.global.config.JwtTokenProvider;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,11 @@ public class CampaignControllerTest {
     void test2() throws Exception {
         Gson gson = new Gson();
         final String url = "/api/campaign/getMyCampaigns";
-        doReturn(List.of("name1","name2","name3")).when(campaignService).getMyCampaigns("test@test.com");
+        doReturn(List.of(
+                getCampaignResDto("name1",1L),
+                getCampaignResDto("name2",2L),
+                getCampaignResDto("name3",3L)
+        )).when(campaignService).getMyCampaigns("test@test.com");
         final ResultActions resultActions = mockMvc.perform(
                 MockMvcRequestBuilders.get(url)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,9 +68,20 @@ public class CampaignControllerTest {
                 status().isOk(),
                 jsonPath("message").value("success : load campaign name list"),
                 jsonPath("data").isArray(), // data가 배열인지 확인
-                jsonPath("data[0]").value("name1"), // 첫 번째 요소 검증
-                jsonPath("data[1]").value("name2"), // 두 번째 요소 검증
-                jsonPath("data[2]").value("name3")  // 세 번째 요소 검증
+                jsonPath("data[0].title").value("name1"), // 첫 번째 요소 검증
+                jsonPath("data[1].title").value("name2"), // 두 번째 요소 검증
+                jsonPath("data[2].title").value("name3") , // 세 번째 요소 검증
+                jsonPath("data[0].campaignId").value(1L), // 첫 번째 요소 검증
+                jsonPath("data[1].campaignId").value(2L), // 두 번째 요소 검증
+                jsonPath("data[2].campaignId").value(3L)  // 세 번째 요소 검증
         ).andDo(print());
+    }
+
+    public CampaignResponseDto getCampaignResDto(String name,Long id){
+        return CampaignResponseDto.builder()
+                .title(name)
+                .campaignId(id)
+                .build();
+
     }
 }

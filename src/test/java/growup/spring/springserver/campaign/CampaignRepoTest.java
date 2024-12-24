@@ -1,5 +1,7 @@
 package growup.spring.springserver.campaign;
 
+import growup.spring.springserver.campaign.domain.Campaign;
+import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
