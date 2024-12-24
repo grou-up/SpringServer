@@ -1,7 +1,7 @@
 package growup.spring.springserver.keyword.repository;
 
-import growup.spring.springserver.campaign.Campaign;
-import growup.spring.springserver.campaign.CampaignRepository;
+import growup.spring.springserver.campaign.domain.Campaign;
+import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.keyword.domain.Keyword;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

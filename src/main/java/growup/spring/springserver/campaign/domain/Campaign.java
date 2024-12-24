@@ -1,4 +1,4 @@
-package growup.spring.springserver.campaign;
+package growup.spring.springserver.campaign.domain;
 
 import growup.spring.springserver.login.domain.Member;
 import jakarta.persistence.Entity;

@@ -1,5 +1,6 @@
-package growup.spring.springserver.campaign;
+package growup.spring.springserver.campaign.repository;
 
+import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.login.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -1,6 +1,5 @@
 package growup.spring.springserver.login.service;
 
-import growup.spring.springserver.campaign.CampaignService;
 import growup.spring.springserver.global.domain.TypeChange;
 import growup.spring.springserver.global.support.Role;
 import growup.spring.springserver.login.domain.Member;
@@ -12,11 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
