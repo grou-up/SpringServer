@@ -1,4 +1,4 @@
-package growup.spring.springserver.tempdomain;
+package growup.spring.springserver.execution.domain;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import jakarta.persistence.*;

@@ -1,5 +1,6 @@
-package growup.spring.springserver.tempdomain;
+package growup.spring.springserver.campaignoptiondetails.domain;
 
+import growup.spring.springserver.execution.domain.Execution;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
