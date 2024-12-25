@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
@@ -30,6 +32,21 @@ public class KeywordService {
         }
         List<Keyword> data = keywordRepository.findAllByDateANDFlag(startDate,endDate,campaignId);
         if(data.isEmpty()) throw new NullPointerException("해당 캠페인의 키워드가 없습니다.");
-        return data.stream().map(TypeChangeKeyword::entityToResponseDto).toList();
+        HashMap<String,KeywordResponseDto> map = new HashMap<>();
+        for(Keyword keyword : data){
+            if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().equals("nan")){
+                continue;
+            }
+            if(map.containsKey(keyword.getKeyKeyword())){
+                map.get(keyword.getKeyKeyword()).update(keyword);
+                continue;
+            }
+            map.put(keyword.getKeyKeyword(),TypeChangeKeyword.entityToResponseDto(keyword));
+        }
+        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
+        for(String key : map.keySet()){
+            keywordResponseDtos.add(map.get(key));
+        }
+        return keywordResponseDtos;
     }
 }

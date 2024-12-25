@@ -82,9 +82,82 @@ public class KeywordServiceTest {
         assertThat(result.size()).isEqualTo(3);
     }
 
+    @Test
+    @DisplayName("getKeyWords(): Error 4. Roas, Cvr 계산 시 분모가 0 일 경우?")
+    void test6(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        doReturn(List.of(Keyword.builder()
+                                .keyKeyword("keyword1")
+                                .keyAdcost(0.0)
+                                .keyCvr(0.0)
+                                .keyCpc(0.0)
+                                .keyClicks(0L)
+                                .keyImpressions(0L)
+                                .keyTotalSales(0L)
+                                .keyAdsales(0.0)
+                                .build()
+                    ,Keyword.builder()
+                        .keyKeyword("keyword1")
+                        .keyAdcost(0.0)
+                        .keyCpc(0.0)
+                        .keyCvr(0.0)
+                        .keyClicks(0L)
+                        .keyImpressions(0L)
+                        .keyTotalSales(0L)
+                        .keyAdsales(0.0)
+                        .build()
+                ,Keyword.builder()
+                        .keyKeyword("keyword1")
+                        .keyAdcost(0.0)
+                        .keyCpc(0.0)
+                        .keyCvr(0.0)
+                        .keyClicks(0L)
+                        .keyImpressions(0L)
+                        .keyTotalSales(0L)
+                        .keyAdsales(0.0)
+                        .build()))
+                .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+        //given
+        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getKeyKeyword()).isEqualTo("keyword1");
+        assertThat(result.get(0).getKeyCvr()).isEqualTo(0.0);
+    }
+
+    @Test
+    @DisplayName("getKeyWords(): Success 2. keyword 요소가 잘 합쳐질까?")
+    void test5(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        doReturn(List.of(getKeyword("keyword1")
+                ,getKeyword("keyword1")
+                ,getKeyword("keyword1")
+                ,getKeyword("keyword2")))
+                .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+        //given
+        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
+        //then
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.get(0).getKeyKeyword()).isEqualTo("keyword1");
+        assertThat(result.get(0).getKeyAdcost()).isEqualTo(150.0);
+        assertThat(result.get(0).getKeyClickRate()).isEqualTo(100.0);
+        assertThat(result.get(0).getKeyRoas()).isEqualTo(200.0);
+        assertThat(result.get(0).getKeyCvr()).isEqualTo(100.0);
+    }
+
     public Keyword getKeyword(String title){
         return Keyword.builder()
                 .keyKeyword(title)
+                .keyAdcost(50.0)
+                .keyCpc(100.0)
+                .keyClicks(100L)
+                .keyImpressions(100L)
+                .keyTotalSales(100L)
+                .keyAdsales(100.0)
                 .build();
     }
 
