@@ -34,7 +34,7 @@ public class KeywordService {
         if(data.isEmpty()) throw new NullPointerException("해당 캠페인의 키워드가 없습니다.");
         HashMap<String,KeywordResponseDto> map = new HashMap<>();
         for(Keyword keyword : data){
-            if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().equals("nan")){
+            if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().isEmpty()){
                 continue;
             }
             if(map.containsKey(keyword.getKeyKeyword())){

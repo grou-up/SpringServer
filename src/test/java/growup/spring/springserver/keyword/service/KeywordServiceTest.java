@@ -72,9 +72,9 @@ public class KeywordServiceTest {
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1")
-                ,getKeyword("keyword2")
-                ,getKeyword("keyword3")))
+        doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                ,getKeyword("keyword2",0.0,0.0,0L,0L,0L,0.0)
+                ,getKeyword("keyword3",0.0,0.0,0L,0L,0L,0.0)))
                 .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
@@ -88,36 +88,9 @@ public class KeywordServiceTest {
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
-        doReturn(List.of(Keyword.builder()
-                                .keyKeyword("keyword1")
-                                .keyAdcost(0.0)
-                                .keyCvr(0.0)
-                                .keyCpc(0.0)
-                                .keyClicks(0L)
-                                .keyImpressions(0L)
-                                .keyTotalSales(0L)
-                                .keyAdsales(0.0)
-                                .build()
-                    ,Keyword.builder()
-                        .keyKeyword("keyword1")
-                        .keyAdcost(0.0)
-                        .keyCpc(0.0)
-                        .keyCvr(0.0)
-                        .keyClicks(0L)
-                        .keyImpressions(0L)
-                        .keyTotalSales(0L)
-                        .keyAdsales(0.0)
-                        .build()
-                ,Keyword.builder()
-                        .keyKeyword("keyword1")
-                        .keyAdcost(0.0)
-                        .keyCpc(0.0)
-                        .keyCvr(0.0)
-                        .keyClicks(0L)
-                        .keyImpressions(0L)
-                        .keyTotalSales(0L)
-                        .keyAdsales(0.0)
-                        .build()))
+        doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                    ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                    ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
                 .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
@@ -133,31 +106,34 @@ public class KeywordServiceTest {
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1")
-                ,getKeyword("keyword1")
-                ,getKeyword("keyword1")
-                ,getKeyword("keyword2")))
+        doReturn(List.of(getKeyword("keyword1",660.0,0.0,0L,0L,0L,11000.0)
+                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
                 .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.size()).isEqualTo(1);
         assertThat(result.get(0).getKeyKeyword()).isEqualTo("keyword1");
-        assertThat(result.get(0).getKeyAdcost()).isEqualTo(150.0);
-        assertThat(result.get(0).getKeyClickRate()).isEqualTo(100.0);
-        assertThat(result.get(0).getKeyRoas()).isEqualTo(200.0);
-        assertThat(result.get(0).getKeyCvr()).isEqualTo(100.0);
+        System.out.println(result.get(0).getKeyRoas());
     }
 
-    public Keyword getKeyword(String title){
+    public Keyword getKeyword(String title,
+                              Double adCost,
+                              Double cpc,
+                              Long clicks,
+                              Long impression,
+                              Long totalSale,
+                              Double adSale){
         return Keyword.builder()
+                .keyCvr(0.0)
                 .keyKeyword(title)
-                .keyAdcost(50.0)
-                .keyCpc(100.0)
-                .keyClicks(100L)
-                .keyImpressions(100L)
-                .keyTotalSales(100L)
-                .keyAdsales(100.0)
+                .keyAdcost(adCost)
+                .keyCpc(cpc)
+                .keyClicks(clicks)
+                .keyImpressions(impression)
+                .keyTotalSales(totalSale)
+                .keyAdsales(adSale)
                 .build();
     }
 

@@ -40,9 +40,9 @@ public class KeywordResponseDto {
         keyClicks += keyword.getKeyClicks();
         keyImpressions += keyword.getKeyImpressions();
         keyTotalSales += keyword.getKeyTotalSales();
-        keyCpc += keyword.getKeyCpc();
         keyAdcost += keyword.getKeyAdcost();
         keyAdsales += keyword.getKeyAdsales();
+        if(keyAdcost !=0 ) keyCpc = (double) (Math.round((keyAdcost/ keyClicks)*100))/100.0  ;
         if(keyAdsales !=0 ) keyRoas = (double) (Math.round((keyAdsales/keyAdcost)*10000)) / 100.0;
         if(keyImpressions != 0 )  keyClickRate = (double) ((keyClicks/keyImpressions) * 100);
         if(keyClicks !=0 ) keyCvr = (double) ((keyTotalSales/keyClicks)*100);
