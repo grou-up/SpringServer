@@ -8,17 +8,17 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface CampaignOptionDetailsRepository extends JpaRepository<CampaignOptionDetails, Long> {
 
     // 특정 캠페인 ID 와 날짜 범위로 detail 조회
     @Query("SELECT cod FROM CampaignOptionDetails cod " +
-            "WHERE cod.execution.campaign.campaignId = :campaignId " +
-            "AND cod.copDate BETWEEN :startDate AND :endDate")
-    Optional<List<CampaignOptionDetails>> findByCampaignIdAndDateRange(
-            @Param("campaignId") Long campaignId,
+            "WHERE cod.execution.executionId IN :executionIds " +
+            "AND cod.copDate >= :startDate AND cod.copDate <= :endDate")
+    List<CampaignOptionDetails> findByExecutionIdsAndDateRange(
+            @Param("executionIds") List<Long> executionIds,
             @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+            @Param("endDate") LocalDate endDate
+    );
 }
