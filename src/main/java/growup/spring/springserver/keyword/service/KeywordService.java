@@ -30,7 +30,7 @@ public class KeywordService {
         }catch (DateTimeParseException | DataFormatException e){
             throw new IllegalArgumentException("날짜 형식이 이상합니다");
         }
-        List<Keyword> data = keywordRepository.findAllByDateANDFlag(startDate,endDate,campaignId);
+        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(startDate,endDate,campaignId);
         if(data.isEmpty()) throw new NullPointerException("해당 캠페인의 키워드가 없습니다.");
         HashMap<String,KeywordResponseDto> map = new HashMap<>();
         for(Keyword keyword : data){

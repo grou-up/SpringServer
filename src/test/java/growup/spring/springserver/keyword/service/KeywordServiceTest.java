@@ -32,7 +32,7 @@ public class KeywordServiceTest {
     @DisplayName("getKeyWords(): Error 1. 해당 조건 데이터 없음")
     void test1(){
         //when
-        doReturn(List.of()).when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+        doReturn(List.of()).when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final Exception result  = assertThrows(NullPointerException.class,
                 ()-> keywordService.getKeywordsByCampaignId("2024-12-24","2024-12-24",1L) );
@@ -75,7 +75,7 @@ public class KeywordServiceTest {
         doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
                 ,getKeyword("keyword2",0.0,0.0,0L,0L,0L,0.0)
                 ,getKeyword("keyword3",0.0,0.0,0L,0L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
@@ -91,7 +91,7 @@ public class KeywordServiceTest {
         doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
                     ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
                     ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
@@ -109,7 +109,7 @@ public class KeywordServiceTest {
         doReturn(List.of(getKeyword("keyword1",660.0,0.0,0L,0L,0L,11000.0)
                 ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
                 ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDFlag(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
@@ -127,6 +127,8 @@ public class KeywordServiceTest {
                               Double adSale){
         return Keyword.builder()
                 .keyCvr(0.0)
+                .keyClickRate(0.0)
+                .keyRoas(0.0)
                 .keyKeyword(title)
                 .keyAdcost(adCost)
                 .keyCpc(cpc)
