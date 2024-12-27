@@ -9,6 +9,8 @@ import growup.spring.springserver.global.config.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,8 +20,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.stream.Stream;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,7 +48,7 @@ public class ExclusionKeywordControllerTest {
     @DisplayName("addExclusionKeyword() : Error 1. 캠패인 ID 누락 시")
     @Test
     @WithAuthUser
-    void test2() throws Exception {
+    void test1_1() throws Exception {
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
         ResultActions resultActions = mockMvc.perform(post(url)
@@ -57,7 +64,7 @@ public class ExclusionKeywordControllerTest {
     @DisplayName("addExclusionKeyword() : Error 2. 제외 키워드 누락 시")
     @Test
     @WithAuthUser
-    void test3() throws Exception {
+    void test1_2() throws Exception {
         //when
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
@@ -76,7 +83,7 @@ public class ExclusionKeywordControllerTest {
     @DisplayName("addExclusionKeyword() : Success 3. 제외 키워드 누락 시")
     @Test
     @WithAuthUser
-    void test4() throws Exception {
+    void test1_3() throws Exception {
         //when
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
@@ -96,5 +103,42 @@ public class ExclusionKeywordControllerTest {
                 jsonPath("data.exclusionKeyword").value("key"),
                 jsonPath("data.campaignId").value(1L)
         ).andDo(print());
+    }
+
+    @DisplayName("addExclusionKeyword() : Error 1. Param 데이터 누락")
+    @ParameterizedTest
+    @MethodSource("inCorrectUrlProvider")
+    @WithAuthUser
+    void test2_1(String url) throws Exception {
+        //when
+        doThrow(IllegalArgumentException.class).when(exclusionKeywordService).deleteExclusionKeyword(any(Long.class),any(String.class));
+        //then
+        ResultActions resultActions = mockMvc.perform(delete(url)
+                .with(csrf())); // 403 에러 해결을 위해 추가
+        resultActions.andExpectAll(
+                status().isBadRequest()
+        ).andDo(print());
+    }
+
+    @DisplayName("addExclusionKeyword() : Success")
+    @Test
+    @WithAuthUser
+    void test2_2() throws Exception {
+        //when
+        final String url = "/api/exclusionKeyword/remove?campaignId=1101&exclusionKeyword=exclusionKey";
+        doReturn(true).when(exclusionKeywordService).deleteExclusionKeyword(any(Long.class),any(String.class));
+        //then
+        ResultActions resultActions = mockMvc.perform(delete(url)
+                .with(csrf())); // 403 에러 해결을 위해 추가
+        resultActions.andExpectAll(
+                status().isOk(),
+                jsonPath("message").value("success : remove")
+        ).andDo(print());
+    }
+
+    static Stream<String> inCorrectUrlProvider() {
+        return Stream.of("/api/exclusionKeyword/remove?campaignId=1&exclusionKeyword=",
+                "/api/exclusionKeyword/remove?exclusionKeyword=exclusionKey",
+                "/api/exclusionKeyword/remove?campaignId=data&exclusionKeyword=exclusionKey");
     }
 }

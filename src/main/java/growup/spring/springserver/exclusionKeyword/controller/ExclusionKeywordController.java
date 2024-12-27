@@ -36,4 +36,16 @@ public class ExclusionKeywordController {
                 .data(result)
                 .build(), HttpStatus.OK);
     }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<CommonResponse<?>> removeExclusionKeyword(@RequestParam(value ="campaignId") Long campaignId,
+                                                                    @RequestParam(value = "exclusionKeyword") String exclusionKeyword) {
+        final boolean result = exclusionKeywordService.deleteExclusionKeyword(campaignId,exclusionKeyword);
+        return new ResponseEntity<>(CommonResponse
+                .<Boolean>builder("success : remove")
+                .data(result)
+                .build(), HttpStatus.OK);
+    }
+
+
 }
