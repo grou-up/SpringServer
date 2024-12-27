@@ -43,7 +43,21 @@ public class ExclusionKeywordRepositoryTest {
         assertThat(result.size()).isEqualTo(3);
     }
 
-    @DisplayName("deleteById() : Success")
+    @DisplayName("deleteByCampaign_campaignIdANDExclusionKeyword() : Success 1. 만일 데이터가 없을때")
+    @Test
+    void test4(){
+        //when
+        final Campaign campaign = campaignRepository.save(getCampaign("campaign"));
+        ExclusionKeyword exclusionKeyword = exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey1",campaign));
+        exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey2",campaign));
+        exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey3",campaign));
+        //given
+        int result = exclusionKeywordRepository.deleteByCampaign_campaignIdANDExclusionKeyword(2L,exclusionKeyword.getExclusionKeyword());
+        //then
+        assertThat(result).isEqualTo(0);
+    }
+
+    @DisplayName("deleteByCampaign_campaignIdANDExclusionKeyword() : Success 2. 삭제 성공")
     @Test
     void test3(){
         //when
@@ -52,15 +66,14 @@ public class ExclusionKeywordRepositoryTest {
         exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey2",campaign));
         exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey3",campaign));
         //given
-        exclusionKeywordRepository.deleteById(exclusionKeyword.getId());
-        final List<ExclusionKeyword> result = exclusionKeywordRepository.findAllByCampaign_campaignId(1L);
+        int result = exclusionKeywordRepository.deleteByCampaign_campaignIdANDExclusionKeyword(exclusionKeyword.getCampaign().getCampaignId(),exclusionKeyword.getExclusionKeyword());
         //then
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).isEqualTo(1);
     }
 
     @DisplayName("existsByExclusionKeyword() : Success")
     @Test
-    void test4(){
+    void test5(){
         //when
         final Campaign campaign = campaignRepository.save(getCampaign("campaign"));
         exclusionKeywordRepository.save(getExclusionKeyword("exclusionKey1",campaign));
