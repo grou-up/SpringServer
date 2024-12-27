@@ -47,5 +47,14 @@ public class ExclusionKeywordController {
                 .build(), HttpStatus.OK);
     }
 
+    @GetMapping("/getExclusionKeywords")
+    public ResponseEntity<CommonResponse<?>> getExclusionKeywords(@RequestParam(value = "campaignId") Long campaignId){
+        List<String> result = exclusionKeywordService.getExclusionKeywords(campaignId);
+        return new ResponseEntity<>(CommonResponse
+                .<List<String>>builder("success : getExclusionKeywords")
+                .data(result)
+                .build(), HttpStatus.OK);
+    }
+
 
 }

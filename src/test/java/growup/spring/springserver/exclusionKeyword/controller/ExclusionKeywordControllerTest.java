@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -119,6 +121,11 @@ public class ExclusionKeywordControllerTest {
                 status().isBadRequest()
         ).andDo(print());
     }
+    static Stream<String> inCorrectUrlProvider() {
+        return Stream.of("/api/exclusionKeyword/remove?campaignId=1&exclusionKeyword=",
+                "/api/exclusionKeyword/remove?exclusionKeyword=exclusionKey",
+                "/api/exclusionKeyword/remove?campaignId=data&exclusionKeyword=exclusionKey");
+    }
 
     @DisplayName("addExclusionKeyword() : Success")
     @Test
@@ -136,9 +143,44 @@ public class ExclusionKeywordControllerTest {
         ).andDo(print());
     }
 
-    static Stream<String> inCorrectUrlProvider() {
-        return Stream.of("/api/exclusionKeyword/remove?campaignId=1&exclusionKeyword=",
-                "/api/exclusionKeyword/remove?exclusionKeyword=exclusionKey",
-                "/api/exclusionKeyword/remove?campaignId=data&exclusionKeyword=exclusionKey");
+    @DisplayName("getExclusionKeywords() : 파라미터 값 누락")
+    @ParameterizedTest
+    @WithAuthUser
+    @MethodSource("incorrectGetExKeysURl")
+    void test3_1(String url) throws Exception {
+        //when
+        //given
+        ResultActions resultActions = mockMvc.perform(get(url)
+                .with(csrf()));
+        //then
+        resultActions.andExpectAll(
+                status().isBadRequest()
+        ).andDo(print());
     }
+    static Stream<String> incorrectGetExKeysURl(){
+        return Stream.of("/api/exclusionKeyword/getExclusionKeywords",
+                "/api/exclusionKeyword/getExclusionKeywords?campaignId=",
+                "/api/exclusionKeyword/getExclusionKeywords?campaignId=noLong"
+                );
+    }
+
+    @DisplayName("getExclusionKeywords() : Success")
+    @Test
+    @WithAuthUser
+    void test3_2() throws Exception {
+        //when
+        final String url = "/api/exclusionKeyword/getExclusionKeywords?campaignId=1";
+        doReturn(List.of("exK1","exK2","exK3")).when(exclusionKeywordService).getExclusionKeywords(any(Long.class));
+        //given
+        ResultActions resultActions = mockMvc.perform(get(url));
+        //then
+        resultActions.andExpectAll(
+                status().isOk(),
+                jsonPath("data[0]").value("exK1"),
+                jsonPath("data[1]").value("exK2"),
+                jsonPath("data[2]").value("exK3")
+        );
+
+    }
+
 }
