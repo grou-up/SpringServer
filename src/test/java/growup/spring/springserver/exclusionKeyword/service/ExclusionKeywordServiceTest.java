@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -108,6 +109,33 @@ public class ExclusionKeywordServiceTest {
         final boolean result = exclusionKeywordService.deleteExclusionKeyword(1L,"exclusionKey");
         //then
         assertThat(result).isEqualTo(true);
+    }
+
+    @DisplayName("getExclusionKeywords(): Error1. 데이터가 존재하지 않음")
+    @Test
+    void test3_1(){
+        //when
+        doReturn(List.of()).when(exclusionKeywordRepository).findAllByCampaign_campaignId(any(Long.class));
+        //given
+        final Exception result = assertThrows(IllegalArgumentException.class,
+                () -> exclusionKeywordService.getExclusionKeywords(1L));
+        //then
+        assertThat(result.getMessage()).isEqualTo("해당 제외키워드가 없습니다");
+    }
+    @DisplayName("getExclusionKeywords(): Success")
+    @Test
+    void test3_2(){
+        //when
+        doReturn(List.of(getExclusionKeyword(1L,"exK1",null),
+                getExclusionKeyword(2L,"exK2",null),
+                getExclusionKeyword(3L,"exK3",null))).when(exclusionKeywordRepository).findAllByCampaign_campaignId(any(Long.class));
+        //given
+        final List<String> result = exclusionKeywordService.getExclusionKeywords(1L);
+        //then
+        assertThat(result.size()).isEqualTo(3);
+        assertThat(result.get(0)).isEqualTo("exK1");
+        assertThat(result.get(1)).isEqualTo("exK2");
+        assertThat(result.get(2)).isEqualTo("exK3");
     }
 
 

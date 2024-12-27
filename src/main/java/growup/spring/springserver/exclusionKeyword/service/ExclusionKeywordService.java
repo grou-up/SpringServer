@@ -9,6 +9,8 @@ import growup.spring.springserver.exclusionKeyword.repository.ExclusionKeywordRe
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ExclusionKeywordService {
     @Autowired
@@ -35,5 +37,11 @@ public class ExclusionKeywordService {
             throw new IllegalArgumentException("해당 제외키워드가 존재하지 않습니다.");
         }
         return true;
+    }
+
+    public List<String> getExclusionKeywords(Long campaignId){
+        List<ExclusionKeyword> exclusionKeywords = exclusionKeywordRepository.findAllByCampaign_campaignId(campaignId);
+        if(exclusionKeywords.isEmpty()) throw new IllegalArgumentException("해당 제외키워드가 없습니다");
+        return exclusionKeywords.stream().map(ExclusionKeyword::getExclusionKeyword).toList();
     }
 }
