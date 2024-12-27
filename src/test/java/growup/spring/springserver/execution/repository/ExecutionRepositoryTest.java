@@ -54,25 +54,20 @@ class ExecutionRepositoryTest {
         execution3 = executionRepository.save(newExecution(campaign2, 91130550623L, "블루", "안경 케이스 - 블루"));
 
         // When
-        Optional<List<Execution>> result = executionRepository.findByCampaignCampaignId(campaign.getCampaignId());
+        List<Long> result = executionRepository.findExecutionIdsByCampaignId(campaign.getCampaignId());
 
         // Then
-        assertThat(execution1.getCampaign().getCampaignId()).isEqualTo(execution2.getCampaign().getCampaignId()).isEqualTo(1L);
-        assertThat(result).isPresent();
-        assertThat(result.get()).hasSize(2);
-        assertThat(result.get()).extracting("executionId")
-                .containsExactlyInAnyOrder(91130550615L, 91130550622L);
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("findByCampaignCampaignId(): Optional 처리 테스트")
+    @DisplayName("findByCampaignCampaignId(): 없는 값")
     void findByCampaignCampaignIdReturnsEmptyOptional() {
         // When
-        Optional<List<Execution>> result = executionRepository.findByCampaignCampaignId(999999L);
+        List<Long> result = executionRepository.findExecutionIdsByCampaignId(999999L);
 
         // Then
-        assertThat(result).isPresent(); // Optional 자체는 존재
-        assertThat(result.get()).isEmpty(); // 내부 리스트가 비어 있는지 확인
+        assertThat(result.isEmpty()); // 내부 리스트가 비어 있는지 확인
     }
 
 
