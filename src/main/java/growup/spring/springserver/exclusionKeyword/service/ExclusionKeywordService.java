@@ -28,4 +28,12 @@ public class ExclusionKeywordService {
         ExclusionKeyword result = exclusionKeywordRepository.save(exclusionKeyword);
         return TypeChangeExclusionKeyword.entityToResponseDTO(result);
     }
+
+    public boolean deleteExclusionKeyword(Long campaignId, String exclusionKeyword){
+        if(exclusionKeyword.isBlank()) throw new IllegalArgumentException("제거할 키워드가 입력되지 않았습니다.");
+        if(exclusionKeywordRepository.deleteByCampaign_campaignIdANDExclusionKeyword(campaignId,exclusionKeyword)==0){
+            throw new IllegalArgumentException("해당 제외키워드가 존재하지 않습니다.");
+        }
+        return true;
+    }
 }
