@@ -7,7 +7,7 @@ public class TypeChangeCampaignOptionDetails {
 
     public static CampaignOptionDetailsResponseDto entityToResponseDto(CampaignOptionDetails campaignOptionDetails) {
         return CampaignOptionDetailsResponseDto.builder()
-                .id(campaignOptionDetails.getId()) // 옵션아이디
+                .id(campaignOptionDetails.getExecution().getExeId()) // 옵션아이디
                 .name(campaignOptionDetails.getExecution().getExeProductName()) // 상품명
                 .copSales(campaignOptionDetails.getCopSales()) // 주문수
                 .copAdcost(campaignOptionDetails.getCopAdcost()) // 광고비
