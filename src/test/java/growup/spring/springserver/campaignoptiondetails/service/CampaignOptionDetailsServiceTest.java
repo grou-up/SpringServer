@@ -1,4 +1,5 @@
 package growup.spring.springserver.campaignoptiondetails.service;
+
 import growup.spring.springserver.campaignoptiondetails.domain.CampaignOptionDetails;
 import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetailsResponseDto;
 import growup.spring.springserver.campaignoptiondetails.repository.CampaignOptionDetailsRepository;
@@ -76,9 +77,9 @@ class CampaignOptionDetailsServiceTest {
         final LocalDate end = LocalDate.of(2024, 11, 13);
 
         List<Execution> executions = List.of(
-                newExecution(1L, "상품1", "상품1"),
-                newExecution(2L, "상품2", "상품2"),
-                newExecution(3L, "상품3", "상품3")
+                newExecution(1L, 1L, "상품1", "상품1"),
+                newExecution(2L, 2L, "상품2", "상품2"),
+                newExecution(3L, 3L, "상품3", "상품3")
         );
 
         doReturn(executions).when(executionRepository).findExecutionIdsByCampaignId(any());
@@ -105,25 +106,24 @@ class CampaignOptionDetailsServiceTest {
         List<Long> executionIds = List.of(1L, 2L, 3L);
         doReturn(executionIds).when(executionRepository).findExecutionIdsByCampaignId(any());
 
-        Execution execution1 = newExecution(1L, "Product A", "Category A");
-        Execution execution2 = newExecution(2L, "Product B", "Category B");
-        Execution execution3 = newExecution(3L, "Product C", "Category C");
-
+        Execution execution1 = newExecution(1L,1L, "Product A", "Category A");
+        Execution execution2 = newExecution(2L,2L, "Product B", "Category B");
+        Execution execution3 = newExecution(3L,3L, "Product C", "Category C");
+        System.out.println("execution3 = " + execution1.toString());
         // Mock 데이터: CampaignOptionDetails
         List<CampaignOptionDetails> campaignOptionDetailsList = List.of(
-                newCampaignOptionDetails(1L, start, 100L, 50.0, 200.0, 400.0, 2L, 0.5, 2.5, "검색",3L,execution1),
-                newCampaignOptionDetails(2L, end, 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색",3L,execution2),
-                newCampaignOptionDetails(3L, end.plusDays(1), 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색",3L,execution3), // 속하지 않는 데이터
-                newCampaignOptionDetails(4L, end, 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색",3L,execution3)
+                newCampaignOptionDetails(1L, start, 100L, 50.0, 200.0, 400.0, 2L, 0.5, 2.5, "검색", 3L, execution1),
+                newCampaignOptionDetails(2L, end, 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색", 3L, execution2),
+                newCampaignOptionDetails(3L, end.plusDays(1), 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색", 3L, execution3), // 속하지 않는 데이터
+                newCampaignOptionDetails(4L, end, 200L, 30.0, 150.0, 300.0, 3L, 0.8, 3.0, "비검색", 3L, execution3)
         );
         // Mock 설정: 날짜 범위를 기반으로 데이터를 필터링
         doAnswer(data -> {
             List<Long> ids = data.getArgument(0);
             LocalDate from = data.getArgument(1);
             LocalDate to = data.getArgument(2);
-
             return campaignOptionDetailsList.stream()
-                    .filter(detail -> ids.contains(detail.getExecution().getExecutionId()) &&
+                    .filter(detail -> ids.contains(detail.getExecution().getId()) &&
                             (detail.getCopDate().isEqual(from) || detail.getCopDate().isAfter(from)) &&
                             (detail.getCopDate().isEqual(to) || detail.getCopDate().isBefore(to)))
                     .toList();
@@ -150,33 +150,34 @@ class CampaignOptionDetailsServiceTest {
         List<Long> executionIds = List.of(1L, 2L, 3L);
         doReturn(executionIds).when(executionRepository).findExecutionIdsByCampaignId(any());
 
-        Execution execution1 = newExecution(1L, "Product A", "Category A");
-        Execution execution2 = newExecution(2L, "Product B", "Category B");
+        Execution execution1 = newExecution(1L,1L, "Product A", "Category A");
+        Execution execution2 = newExecution(2L,2L, "Product B", "Category B");
 
         // Mock 데이터 생성
         List<CampaignOptionDetails> campaignOptionDetailsList = List.of(
-                newCampaignOptionDetails(1L, start, 1L, 10.0, 10.0, 10.0, 1L, 0.3, 2.5, "검색",3L,execution1),
-                newCampaignOptionDetails(2L, end, 3L, 500.0, 5000.0, 10.0, 3L, 0.5, 3.0, "비검색",1L,execution2),
-                newCampaignOptionDetails(3L, end, 3L, 500.0, 5000.0, 10.0, 1L, 0.5, 3.0, "비검색",1L,execution2)
+                newCampaignOptionDetails(1L, start, 1L, 10.0, 10.0, 10.0, 1L, 0.3, 2.5, "검색", 3L, execution1),
+                newCampaignOptionDetails(2L, end, 3L, 500.0, 5000.0, 10.0, 3L, 0.5, 3.0, "비검색", 1L, execution2),
+                newCampaignOptionDetails(3L, end, 3L, 500.0, 5000.0, 10.0, 1L, 0.5, 3.0, "비검색", 1L, execution2)
         );
-
+        System.out.println("campaignOptionDetailsList = " + campaignOptionDetailsList.toString());
         doReturn(campaignOptionDetailsList).when(campaignOptionDetailsRepository)
                 .findByExecutionIdsAndDateRange(any(List.class), eq(start), eq(end));
 
         // When
         List<CampaignOptionDetailsResponseDto> result = campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(start, end, 1L);
-
+        System.out.println("result = " + result);
         // Then
-
+        System.out.println("result = " + result.get(0).toString());
         assertThat(result.get(0).getCopImpressions()).isEqualTo(1L);
         assertThat(result.get(1).getCopImpressions()).isEqualTo(6L);
         assertThat(result.size()).isEqualTo(2); // 기간에 맞는 데이터만 반환
 
     }
 
-    public Execution newExecution(long l, String detail, String name) {
+    public Execution newExecution(long l, long executionid, String detail, String name) {
         return Execution.builder()
-                .executionId(l)
+                .id(l)
+                .exeId(executionid)
                 .exeDetailCategory(detail)
                 .exeProductName(name)
                 .build();
@@ -185,7 +186,7 @@ class CampaignOptionDetailsServiceTest {
     public CampaignOptionDetails newCampaignOptionDetails(
             long id, LocalDate date, Long impressions, Double copadcost, Double copadsales,
             Double coproas, Long copclicks, Double copclickRate, Double copcvr, String copsearchType,
-            Long copSales,Execution execution
+            Long copSales, Execution execution
     ) {
         return CampaignOptionDetails.builder()
                 .id(id)

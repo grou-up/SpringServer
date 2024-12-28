@@ -86,7 +86,7 @@ class ExecutionRepositoryTest {
 
     public Execution newExecution(Campaign campaign, long l, String detail, String name) {
         return Execution.builder()
-                .executionId(l)
+                .exeId(l)
                 .exeDetailCategory(detail)
                 .exeProductName(name)
                 .campaign(campaign)

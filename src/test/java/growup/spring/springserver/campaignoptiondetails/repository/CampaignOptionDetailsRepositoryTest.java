@@ -47,7 +47,7 @@ class CampaignOptionDetailsRepositoryTest {
         campaign = campaignRepository.save(newCampaign(member));
         execution1 = executionRepository.save(newExecution(campaign, 91130550615L, "블랙", "베리픽스 휴대용 안경 케이스 가죽 파우치 안경집,블랙"));
         execution2 = executionRepository.save(newExecution(campaign, 91130550622L, "화이트", "베리픽스 휴대용 안경 케이스 가죽 파우치 안경집,화이트"));
-        List<Long> executionIds = List.of(execution1.getExecutionId(), execution2.getExecutionId());
+        List<Long> executionIds = List.of(execution1.getId(), execution2.getId());
 
         optionDetails1 = campaignOptionDetailsRepository.save(newCampaignOptionDetails(execution1, LocalDate.of(2024, 12, 25), 100L, 5L, 1000.0, 5000.0, 500.0, 50L, 5.0, 10.0, "검색"));
         optionDetails2 = campaignOptionDetailsRepository.save(newCampaignOptionDetails(execution2, LocalDate.of(2024, 12, 27), 50L, 3L, 500.0, 2000.0, 400.0, 30L, 3.0, 7.0, "비검색"));
@@ -78,7 +78,7 @@ class CampaignOptionDetailsRepositoryTest {
         start = LocalDate.of(2024, 12, 25);
         end = LocalDate.of(2024, 12, 20);
 
-        List<Long> executionIds = List.of(execution1.getExecutionId(), execution2.getExecutionId());
+        List<Long> executionIds = List.of(execution1.getId(), execution2.getId());
 
         // When
         List<CampaignOptionDetails> result = campaignOptionDetailsRepository.findByExecutionIdsAndDateRange(executionIds, start, end);
@@ -112,7 +112,7 @@ class CampaignOptionDetailsRepositoryTest {
         start = LocalDate.of(2023, 12, 20);
         end = LocalDate.of(2023, 12, 24);
 
-        List<Long> executionIds = List.of(execution1.getExecutionId(), execution2.getExecutionId());
+        List<Long> executionIds = List.of(execution1.getId(), execution2.getId());
 
         // When
         List<CampaignOptionDetails> result = campaignOptionDetailsRepository.findByExecutionIdsAndDateRange(executionIds, start, end);
@@ -128,7 +128,7 @@ class CampaignOptionDetailsRepositoryTest {
         start = LocalDate.of(2024, 12, 24);
         end = LocalDate.of(2024, 12, 28);
 
-        List<Long> executionIds = List.of(execution1.getExecutionId(), execution2.getExecutionId());
+        List<Long> executionIds = List.of(execution1.getId(), execution2.getId());
 
         // When
         List<CampaignOptionDetails> result = campaignOptionDetailsRepository.findByExecutionIdsAndDateRange(executionIds, start, end);
@@ -152,7 +152,7 @@ class CampaignOptionDetailsRepositoryTest {
 
     public Execution newExecution(Campaign campaign, long l, String detail, String name) {
         return Execution.builder()
-                .executionId(l)
+                .exeId(l)
                 .exeDetailCategory(detail)
                 .exeProductName(name)
                 .campaign(campaign)
