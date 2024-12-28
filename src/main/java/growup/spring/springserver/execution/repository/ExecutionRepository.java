@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface ExecutionRepository extends JpaRepository<Execution,Long> {
 
-    @Query("SELECT e.executionId FROM Execution e WHERE e.campaign.campaignId = :campaignId")
+    @Query("SELECT e.id FROM Execution e WHERE e.campaign.campaignId = :campaignId")
     List<Long> findExecutionIdsByCampaignId(Long campaignId);
 }

@@ -6,6 +6,7 @@ import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetail
 import growup.spring.springserver.campaignoptiondetails.repository.CampaignOptionDetailsRepository;
 import growup.spring.springserver.execution.repository.ExecutionRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CampaignOptionDetailsService {
     private final CampaignOptionDetailsRepository campaignOptionDetailsRepository;
     private final ExecutionRepository executionRepository;
@@ -28,10 +30,8 @@ public class CampaignOptionDetailsService {
         if (byCampaignCampaignIds.isEmpty()) {
             throw new IllegalArgumentException("해당 캠페인의 옵션이 없습니다.");
         }
-
         List<CampaignOptionDetails> byExecutionIdsAndDateRange = campaignOptionDetailsRepository.findByExecutionIdsAndDateRange(
                 byCampaignCampaignIds, start, end);
-
         if (byExecutionIdsAndDateRange.isEmpty()) {
             throw new IllegalArgumentException("해당 옵션의 데이터가 존재 하지 않습니다.");
         }
@@ -44,11 +44,11 @@ public class CampaignOptionDetailsService {
         HashMap<Long, CampaignOptionDetailsResponseDto> map = new HashMap<>();
         for(CampaignOptionDetails details : data){
 
-            if(map.containsKey(details.getExecution().getExecutionId())){
-                map.get(details.getExecution().getExecutionId()).update(details);
+            if(map.containsKey(details.getExecution().getExeId())){
+                map.get(details.getExecution().getExeId()).update(details);
                 continue;
             }
-            map.put(details.getExecution().getExecutionId(), TypeChangeCampaignOptionDetails.entityToResponseDto(details));
+            map.put(details.getExecution().getExeId(), TypeChangeCampaignOptionDetails.entityToResponseDto(details));
         }
 
         List<CampaignOptionDetailsResponseDto> campaignOptionDetailsResponseDtos = new ArrayList<>();

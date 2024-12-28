@@ -14,7 +14,7 @@ public interface CampaignOptionDetailsRepository extends JpaRepository<CampaignO
 
     // 특정 캠페인 ID 와 날짜 범위로 detail 조회
     @Query("SELECT cod FROM CampaignOptionDetails cod " +
-            "WHERE cod.execution.executionId IN :executionIds " +
+            "WHERE cod.execution.id IN :executionIds " +
             "AND cod.copDate >= :startDate AND cod.copDate <= :endDate")
     List<CampaignOptionDetails> findByExecutionIdsAndDateRange(
             @Param("executionIds") List<Long> executionIds,
