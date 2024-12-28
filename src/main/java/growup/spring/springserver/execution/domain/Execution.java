@@ -14,8 +14,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Execution {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "execution_id")
-    private Long executionId;
+    private Long id;
+
+    private Long exeId;
 
     private String exeProductName;
     private String exeDetailCategory;
