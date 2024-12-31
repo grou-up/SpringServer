@@ -84,7 +84,7 @@ public class KeywordServiceTest {
 
     @Test
     @DisplayName("getKeyWords(): Error 4. Roas, Cvr 계산 시 분모가 0 일 경우?")
-    void test6(){
+    void test5(){
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
@@ -101,21 +101,60 @@ public class KeywordServiceTest {
     }
 
     @Test
-    @DisplayName("getKeyWords(): Success 2. keyword 요소가 잘 합쳐질까?")
-    void test5(){
+    @DisplayName("getKeyWords(): Success 2. keyClickRate Test")
+    void test6(){
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",660.0,0.0,0L,0L,0L,11000.0)
-                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
-                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
+        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,0L,11000.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0)))
                 .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getKeyKeyword()).isEqualTo("keyword1");
-        System.out.println(result.get(0).getKeyRoas());
+        assertThat(result.get(0).getKeyClicks()).isEqualTo(30);
+        assertThat(result.get(0).getKeyImpressions()).isEqualTo(369);
+        assertThat(result.get(0).getKeyClickRate()).isEqualTo(((Math.round(((double)30/(double) 369)*10000))/100.0));
+    }
+
+    @Test
+    @DisplayName("getKeyWords(): Success 2. cvr Test")
+    void test7(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,4L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,112L,123L,34L,0.0)))
+                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+        //given
+        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getKeyClicks()).isEqualTo(132);
+        assertThat(result.get(0).getKeyTotalSales()).isEqualTo(40);
+        assertThat(result.get(0).getKeyCvr()).isEqualTo(((Math.round(((double)40/(double) 132)*10000))/100.0));
+    }
+
+    @Test
+    @DisplayName("getKeyWords(): Success 2. cpc Test")
+    void test8(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
+                ,getKeyword("keyword1",660.0,0.0,10L,123L,4L,0.0)
+                ,getKeyword("keyword1",660.0,0.0,112L,123L,34L,0.0)))
+                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
+        //given
+        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getKeyClicks()).isEqualTo(132);
+        assertThat(result.get(0).getKeyAdcost()).isEqualTo(1980);
+        assertThat(result.get(0).getKeyCpc()).isEqualTo(((Math.round(((double)1980/(double) 132)*100))/100.0));
     }
 
     public Keyword getKeyword(String title,

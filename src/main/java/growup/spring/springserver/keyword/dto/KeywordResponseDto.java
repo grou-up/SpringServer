@@ -42,9 +42,9 @@ public class KeywordResponseDto {
         keyTotalSales += keyword.getKeyTotalSales();
         keyAdcost += keyword.getKeyAdcost();
         keyAdsales += keyword.getKeyAdsales();
-        if(keyAdcost !=0 ) keyCpc = (double) (Math.round((keyAdcost/ keyClicks)*100))/100.0  ;
+        if(keyAdcost !=0 ) keyCpc = (double) (Math.round(((keyAdcost/ (double) keyClicks)*100)))/100.0  ;
         if(keyAdsales !=0 ) keyRoas = (double) (Math.round((keyAdsales/keyAdcost)*10000)) / 100.0;
-        if(keyImpressions != 0 )  keyClickRate = (double) ((keyClicks/keyImpressions) * 100);
-        if(keyClicks !=0 ) keyCvr = (double) ((keyTotalSales/keyClicks)*100);
+        if(keyImpressions != 0 )  keyClickRate = (double) (Math.round(((double)keyClicks/(double)keyImpressions) * 10000))/100.0;
+        if(keyClicks !=0 ) keyCvr = (double) (Math.round(((double)keyTotalSales/(double)keyClicks)*10000)) /100.0;
     }
 }
