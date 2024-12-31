@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -53,8 +54,13 @@ public class ExclusionKeywordControllerTest {
     void test1_1() throws Exception {
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of("key"))
+                .campaignId(null)
+                .build();
         ResultActions resultActions = mockMvc.perform(post(url)
-                .content(gson.toJson(ExclusionKeywordRequestDto.builder().exclusionKeyword("key").build()))
+                .content(gson.toJson(body))
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())); // 403 에러 해결을 위해 추가
         resultActions.andExpectAll(
@@ -70,72 +76,118 @@ public class ExclusionKeywordControllerTest {
         //when
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of())
+                .campaignId(1L)
+                .build();
         //given
         ResultActions resultActions = mockMvc.perform(post(url)
-                .content(gson.toJson(ExclusionKeywordRequestDto.builder().campaignId(1L).build()))
+                .content(gson.toJson(body))
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())); // 403 에러 해결을 위해 추가
         //then
         resultActions.andExpectAll(
                 status().isBadRequest(),
-                jsonPath("errorMessage").value("제외 키워드를 입력해주세요")
+                jsonPath("errorMessage").value("제외 키워드는 최소 1개 이상이어야 합니다.")
         ).andDo(print());
     }
 
-    @DisplayName("addExclusionKeyword() : Success 3. 제외 키워드 누락 시")
+    @DisplayName("addExclusionKeyword() : Success 1")
     @Test
     @WithAuthUser
     void test1_3() throws Exception {
         //when
         gson = new Gson();
         final String url = "/api/exclusionKeyword/addExclusionKeyword";
-        //given
-        doReturn(ExclusionKeywordResponseDto.builder()
-                .exclusionKeyword("key")
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of("key","key2"))
                 .campaignId(1L)
-                .build()).when(exclusionKeywordService).addExclusionKeyword(1L,"key");
+                .build();
+        //given
+        doReturn(List.of(ExclusionKeywordResponseDto.builder()
+                        .exclusionKeyword("key")
+                        .campaignId(1L)
+                        .build(),
+                ExclusionKeywordResponseDto.builder()
+                        .exclusionKeyword("key2")
+                        .campaignId(1L)
+                        .build())).when(exclusionKeywordService).addExclusionKeyword(any(ExclusionKeywordRequestDto.class));
         ResultActions resultActions = mockMvc.perform(post(url)
-                .content(gson.toJson(ExclusionKeywordRequestDto.builder().exclusionKeyword("key").campaignId(1L).build()))
+                .content(gson.toJson(body))
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())); // 403 에러 해결을 위해 추가
         //then
         resultActions.andExpectAll(
                 status().isOk(),
                 jsonPath("message").value("success : add exclusionKeyword"),
-                jsonPath("data.exclusionKeyword").value("key"),
-                jsonPath("data.campaignId").value(1L)
+                jsonPath("data[0].exclusionKeyword").value("key"),
+                jsonPath("data[1].exclusionKeyword").value("key2"),
+                jsonPath("data[0].campaignId").value(1L)
         ).andDo(print());
     }
 
-    @DisplayName("addExclusionKeyword() : Error 1. Param 데이터 누락")
-    @ParameterizedTest
-    @MethodSource("inCorrectUrlProvider")
+    @DisplayName("removeExclusionKeyword() : Error 1. body 데이터 누락 campaignID")
+    @Test
     @WithAuthUser
-    void test2_1(String url) throws Exception {
+    void test2_1() throws Exception {
         //when
-        doThrow(IllegalArgumentException.class).when(exclusionKeywordService).deleteExclusionKeyword(any(Long.class),any(String.class));
+        gson = new Gson();
+        final String url = "/api/exclusionKeyword/remove";
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of("key","key2"))
+                .campaignId(null)
+                .build();
         //then
-        ResultActions resultActions = mockMvc.perform(delete(url)
-                .with(csrf())); // 403 에러 해결을 위해 추가
+        ResultActions resultActions = mockMvc.perform(delete(url).content(gson.toJson(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())); // 403 에러 해결을 위해 추가
         resultActions.andExpectAll(
-                status().isBadRequest()
+                status().isBadRequest(),
+                jsonPath("errorMessage").value("조회할 캠패인 ID를 입력해주세요")
         ).andDo(print());
     }
-    static Stream<String> inCorrectUrlProvider() {
-        return Stream.of("/api/exclusionKeyword/remove?campaignId=1&exclusionKeyword=",
-                "/api/exclusionKeyword/remove?exclusionKeyword=exclusionKey",
-                "/api/exclusionKeyword/remove?campaignId=data&exclusionKeyword=exclusionKey");
-    }
 
-    @DisplayName("addExclusionKeyword() : Success")
+    @DisplayName("removeExclusionKeyword() : Error 2. body 데이터 누락 삭제할 키워드가 0개")
     @Test
     @WithAuthUser
     void test2_2() throws Exception {
         //when
-        final String url = "/api/exclusionKeyword/remove?campaignId=1101&exclusionKeyword=exclusionKey";
-        doReturn(true).when(exclusionKeywordService).deleteExclusionKeyword(any(Long.class),any(String.class));
+        gson = new Gson();
+        final String url = "/api/exclusionKeyword/remove";
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of())
+                .campaignId(1L)
+                .build();
         //then
-        ResultActions resultActions = mockMvc.perform(delete(url)
+        ResultActions resultActions = mockMvc.perform(delete(url).content(gson.toJson(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())); // 403 에러 해결을 위해 추가
+        resultActions.andExpectAll(
+                status().isBadRequest(),
+                jsonPath("errorMessage").value("제외 키워드는 최소 1개 이상이어야 합니다.")
+        ).andDo(print());
+    }
+
+    @DisplayName("removeExclusionKeyword() : Success")
+    @Test
+    @WithAuthUser
+    void test2_3() throws Exception {
+        //when
+        gson = new Gson();
+        final String url = "/api/exclusionKeyword/remove";
+        ExclusionKeywordRequestDto body = ExclusionKeywordRequestDto
+                .builder()
+                .exclusionKeyword(List.of("key1","key2"))
+                .campaignId(1L)
+                .build();
+        doReturn(true).when(exclusionKeywordService).deleteExclusionKeyword(any(ExclusionKeywordRequestDto.class));
+        //then
+        ResultActions resultActions = mockMvc.perform(delete(url).content(gson.toJson(body))
+                .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())); // 403 에러 해결을 위해 추가
         resultActions.andExpectAll(
                 status().isOk(),

@@ -24,23 +24,29 @@ public class ExclusionKeywordController {
     private ExclusionKeywordService exclusionKeywordService;
 
     @PostMapping("/addExclusionKeyword")
-    public ResponseEntity<CommonResponse<?>> addExclusionKeyword(@Valid @RequestBody ExclusionKeywordRequestDto requestDto, BindingResult bindingResult) throws BindException {
-//        log.info("start signup");
+    public ResponseEntity<CommonResponse<?>> addExclusionKeyword(@Valid @RequestBody ExclusionKeywordRequestDto exclusionKeywordRequestDto, BindingResult bindingResult) throws BindException {
+        log.info("start addExclusionKeyword");
         if (bindingResult.hasErrors()) {
             log.info("bindExceptions is throw");
             throw new BindException(bindingResult);
         }
-        final ExclusionKeywordResponseDto result = exclusionKeywordService.addExclusionKeyword(requestDto.getCampaignId(),requestDto.getExclusionKeyword());
+        final List<ExclusionKeywordResponseDto> result = exclusionKeywordService.addExclusionKeyword(exclusionKeywordRequestDto);
+        log.info("end addExclusionKeyword");
         return new ResponseEntity<>(CommonResponse
-                .<ExclusionKeywordResponseDto>builder("success : add exclusionKeyword")
+                .<List<ExclusionKeywordResponseDto>>builder("success : add exclusionKeyword")
                 .data(result)
                 .build(), HttpStatus.OK);
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<CommonResponse<?>> removeExclusionKeyword(@RequestParam(value ="campaignId") Long campaignId,
-                                                                    @RequestParam(value = "exclusionKeyword") String exclusionKeyword) {
-        final boolean result = exclusionKeywordService.deleteExclusionKeyword(campaignId,exclusionKeyword);
+    public ResponseEntity<CommonResponse<?>> removeExclusionKeyword(@Valid @RequestBody ExclusionKeywordRequestDto exclusionKeywordRequestDto,
+                                                                    BindingResult bindingResult) throws BindException {
+        log.info("start removeExclusionKeyword");
+        if (bindingResult.hasErrors()) {
+            log.info("bindExceptions is throw");
+            throw new BindException(bindingResult);
+        }
+        final boolean result = exclusionKeywordService.deleteExclusionKeyword(exclusionKeywordRequestDto);
         return new ResponseEntity<>(CommonResponse
                 .<Boolean>builder("success : remove")
                 .data(result)
@@ -49,9 +55,9 @@ public class ExclusionKeywordController {
 
     @GetMapping("/getExclusionKeywords")
     public ResponseEntity<CommonResponse<?>> getExclusionKeywords(@RequestParam(value = "campaignId") Long campaignId){
-        List<String> result = exclusionKeywordService.getExclusionKeywords(campaignId);
+        List<ExclusionKeywordResponseDto> result = exclusionKeywordService.getExclusionKeywords(campaignId);
         return new ResponseEntity<>(CommonResponse
-                .<List<String>>builder("success : getExclusionKeywords")
+                .<List<ExclusionKeywordResponseDto>>builder("success : getExclusionKeywords")
                 .data(result)
                 .build(), HttpStatus.OK);
     }
