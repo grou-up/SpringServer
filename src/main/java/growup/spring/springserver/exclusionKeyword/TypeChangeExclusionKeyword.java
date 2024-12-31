@@ -8,6 +8,7 @@ public class TypeChangeExclusionKeyword {
         return ExclusionKeywordResponseDto.builder()
                 .campaignId(e.getCampaign().getCampaignId())
                 .exclusionKeyword(e.getExclusionKeyword())
+                .addTime(e.getInsDate().toLocalDate())
                 .build();
     }
 }
