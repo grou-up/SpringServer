@@ -4,6 +4,7 @@ import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.global.error.ErrorResponseDto;
 import growup.spring.springserver.login.dto.request.LoginSignInReqDto;
 import growup.spring.springserver.login.dto.request.LoginSignUpReqDto;
+import growup.spring.springserver.login.dto.response.LoginDataResDto;
 import growup.spring.springserver.login.dto.response.LoginResDto;
 import growup.spring.springserver.login.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -84,5 +85,17 @@ public class MemberController {
                 .<LoginResDto>builder("login success")
                 .data(loginresDto)
                 .build(), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/getMyEmailAndRole")
+    public ResponseEntity<CommonResponse<LoginDataResDto>> getMyEmailAndRole(@AuthenticationPrincipal UserDetails userDetails) {
+        log.info("start getMyEmailAndRole");
+        LoginDataResDto myEmailAndRole = memberService.getMyEmailAndRole(userDetails.getUsername());
+
+        return new ResponseEntity<>(CommonResponse
+                .<LoginDataResDto>builder("getMyEmailAndRole Success")
+                .data(myEmailAndRole)
+                .build(), HttpStatus.OK
+        );
     }
 }
