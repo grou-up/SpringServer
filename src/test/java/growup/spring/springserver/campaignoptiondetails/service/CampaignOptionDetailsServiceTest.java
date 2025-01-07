@@ -3,6 +3,9 @@ package growup.spring.springserver.campaignoptiondetails.service;
 import growup.spring.springserver.campaignoptiondetails.domain.CampaignOptionDetails;
 import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetailsResponseDto;
 import growup.spring.springserver.campaignoptiondetails.repository.CampaignOptionDetailsRepository;
+import growup.spring.springserver.exception.InvalidDateFormatException;
+import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionDataNotFoundException;
+import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionNotFoundException;
 import growup.spring.springserver.execution.domain.Execution;
 import growup.spring.springserver.execution.repository.ExecutionRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +22,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 
@@ -45,7 +47,7 @@ class CampaignOptionDetailsServiceTest {
                 .findExecutionIdsByCampaignId(any());
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        CampaignOptionNotFoundException exception = assertThrows(CampaignOptionNotFoundException.class,
                 () -> campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(
                         LocalDate.of(2024, 12, 25),
                         LocalDate.of(2024, 12, 25),
@@ -63,10 +65,10 @@ class CampaignOptionDetailsServiceTest {
         final LocalDate end = LocalDate.of(2025, 12, 13);
 
         // when
-        final Exception result = assertThrows(IllegalArgumentException.class,
+        final Exception result = assertThrows(InvalidDateFormatException.class,
                 () -> campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(end, start, 1L));
         //then
-        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다");
+        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다.");
     }
 
     @Test
@@ -87,13 +89,13 @@ class CampaignOptionDetailsServiceTest {
         // when
         doReturn(List.of())
                 .when(campaignOptionDetailsRepository)
-                .findByExecutionIdsAndDateRange(any(List.class), any(LocalDate.class), any(LocalDate.class));
+                .findByExecutionIdsAndDateRange(anyList(), any(LocalDate.class), any(LocalDate.class));
 
         // then
-        final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
+        final CampaignOptionDataNotFoundException result = assertThrows(CampaignOptionDataNotFoundException.class,
                 () -> campaignOptionDetailsService.getRawCampaignDetails(start, end, 1L));
 
-        assertThat(result.getMessage()).isEqualTo("해당 옵션의 데이터가 존재 하지 않습니다.");
+        assertThat(result.getMessage()).isEqualTo("해당 옵션의 데이터가 존재하지 않습니다.");
     }
 
     @Test
@@ -128,7 +130,7 @@ class CampaignOptionDetailsServiceTest {
                             (detail.getCopDate().isEqual(to) || detail.getCopDate().isBefore(to)))
                     .toList();
         }).when(campaignOptionDetailsRepository)
-                .findByExecutionIdsAndDateRange(any(List.class), any(LocalDate.class), any(LocalDate.class));
+                .findByExecutionIdsAndDateRange(anyList(), any(LocalDate.class), any(LocalDate.class));
 
         // when
         final List<CampaignOptionDetails> result = campaignOptionDetailsService.getRawCampaignDetails(start, end, 1L);
@@ -136,7 +138,7 @@ class CampaignOptionDetailsServiceTest {
         System.out.println("result = " + Arrays.toString(result.toArray()));
 
         // then
-        assertThat(result.size()).isEqualTo(3); // 날짜 범위에 맞는 3개의 데이터가 반환되어야 함
+        assertThat(result).hasSize(3); // 날짜 범위에 맞는 3개의 데이터가 반환되어야 함
 
     }
 
@@ -161,7 +163,7 @@ class CampaignOptionDetailsServiceTest {
         );
         System.out.println("campaignOptionDetailsList = " + campaignOptionDetailsList.toString());
         doReturn(campaignOptionDetailsList).when(campaignOptionDetailsRepository)
-                .findByExecutionIdsAndDateRange(any(List.class), eq(start), eq(end));
+                .findByExecutionIdsAndDateRange(anyList(), eq(start), eq(end));
 
         // When
         List<CampaignOptionDetailsResponseDto> result = campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(start, end, 1L);
@@ -170,7 +172,7 @@ class CampaignOptionDetailsServiceTest {
         System.out.println("result = " + result.get(0).toString());
         assertThat(result.get(0).getCopImpressions()).isEqualTo(1L);
         assertThat(result.get(1).getCopImpressions()).isEqualTo(6L);
-        assertThat(result.size()).isEqualTo(2); // 기간에 맞는 데이터만 반환
+        assertThat(result).hasSize(2);
 
     }
 
