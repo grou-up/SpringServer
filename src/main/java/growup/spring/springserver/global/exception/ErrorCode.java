@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
-import java.util.Optional;
-import java.util.function.Predicate;
 
 @Getter
 @RequiredArgsConstructor
@@ -18,10 +16,15 @@ public enum ErrorCode {
     // Campaign
     CAMPAIGN_NOT_FOUND(HttpStatus.NOT_FOUND, "현재 등록된 캠페인이 없습니다."),
 
+    // CampaignOptiondetails
+    CAMPAIGN_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 캠페인의 옵션이 없습니다."),
+    CAMPAIGN_OPTION_DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 옵션의 데이터가 존재하지 않습니다."),
+
     // Keyword
-//    KEYWORD_
+    CAMPAIGN_KEYWORD_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 캠페인의 키워드가 없습니다."),
+
     //Global
-//    INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST,"날짜 형식이 이상합니다."),
+    INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST, "날짜 형식이 이상합니다."),
 
     ;
 
