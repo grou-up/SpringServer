@@ -1,11 +1,14 @@
 package growup.spring.springserver.keyword.domain;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import growup.spring.springserver.campaign.domain.Campaign;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -43,6 +46,11 @@ public class Keyword {
     private Boolean keyExcludeFlag = false;  // 제외여부
 
     private String keySearchType;  // 검색 비검색
+
+    @Type(JsonBinaryType.class) // JSON 필드 매핑
+    @Column(columnDefinition = "json")
+    private Map<Long, Long> keyProductSales; // JSON 형태로 상품ID와 판매량 저장
+
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
     private Campaign campaign;
