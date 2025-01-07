@@ -1,8 +1,8 @@
 package growup.spring.springserver.login.service;
 
-import growup.spring.springserver.exception.MemberInvalidPasswordException;
-import growup.spring.springserver.exception.MemberKakaoLoginAccountException;
-import growup.spring.springserver.exception.MemberNotFoundException;
+import growup.spring.springserver.exception.login.MemberInvalidPasswordException;
+import growup.spring.springserver.exception.login.MemberKakaoLoginAccountException;
+import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.global.config.JwtTokenProvider;
 import growup.spring.springserver.global.domain.TypeChange;
 import growup.spring.springserver.login.domain.Member;
