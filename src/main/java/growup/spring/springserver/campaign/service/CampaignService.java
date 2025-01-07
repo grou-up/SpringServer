@@ -4,7 +4,8 @@ import growup.spring.springserver.campaign.TypeChangeCampaign;
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.dto.CampaignResponseDto;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
-import growup.spring.springserver.keyword.TypeChangeKeyword;
+import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
+import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,10 @@ public class CampaignService {
     //TODO: 예외 클래스 변경 및 반환 데이터에 ID로 넣어야할까 고민중.
     public List<CampaignResponseDto> getMyCampaigns(String email){
         Member member = memberRepository.findByEmail(email).orElseThrow(
-                ()-> new NullPointerException("해당 멤버가 존재하지 않습니다.")
+                MemberNotFoundException::new
         );
         List<Campaign> campaignList = campaignRepository.findAllByMember(member);
-        if(campaignList.isEmpty()) throw new NullPointerException("현재 등록된 캠패인이 없습니다");
+        if(campaignList.isEmpty()) throw new CampaignNotFoundException();
         return campaignList.stream().map(TypeChangeCampaign::entityToResponseDto).toList();
     }
 }
