@@ -44,23 +44,9 @@ public class KeywordRepositoryTest{
         keywordRepository.save(getKeyword("title1",campaign,dataDate,false));
         keywordRepository.save(getKeyword("title1",campaign,dataDate,false));
         //given
-        List<Keyword> result = keywordRepository.findAllByDateANDFlag(start,end,2L);
+        List<Keyword> result = keywordRepository.findAllByDateANDCampaign(start,end,2L);
         //then
         assertThat(result.size()).isEqualTo(0);
-    }
-
-    @DisplayName("findAllByDateANDFlag() : Success 2. About flag")
-    @Test
-    void test4(){
-        //when
-        LocalDate dataDate = LocalDate.parse("2024-12-25",DateTimeFormatter.ISO_DATE);
-        keywordRepository.save(getKeyword("title1",campaign,dataDate,true));
-        keywordRepository.save(getKeyword("title2",campaign,dataDate,false));
-        keywordRepository.save(getKeyword("title1",campaign,dataDate,true));
-        //given
-        List<Keyword> result = keywordRepository.findAllByDateANDFlag(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(1);
     }
 
     @DisplayName("findAllByDateANDFlag() : Success 3. About Date ")
@@ -75,11 +61,10 @@ public class KeywordRepositoryTest{
         keywordRepository.save(getKeyword("title1",campaign,outDataDate,false));
         keywordRepository.save(getKeyword("title1",campaign,outDataDate,false));
         //given
-        List<Keyword> result = keywordRepository.findAllByDateANDFlag(start,end,1L);
+        List<Keyword> result = keywordRepository.findAllByDateANDCampaign(start,end,1L);
         //then
         assertThat(result.size()).isEqualTo(3);
     }
-
 
     public Keyword getKeyword(String title, Campaign campaign){
         return Keyword.builder()
