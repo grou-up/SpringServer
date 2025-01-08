@@ -1,11 +1,10 @@
 package growup.spring.springserver.campaignoptiondetails.controller;
 
 import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetailsResponseDto;
+import growup.spring.springserver.campaignoptiondetails.dto.CampaignSummaryResponseDto;
 import growup.spring.springserver.campaignoptiondetails.service.CampaignOptionDetailsService;
 import growup.spring.springserver.global.common.CommonResponse;
-import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import lombok.AllArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,6 +37,16 @@ public class CampaignOptionDetailsController {
                 .data(campaignDetailsByCampaignsIds)
                 .build(), HttpStatus.OK);
 
+    }
+    @GetMapping("/getCampaignSalesDifference")
+    public ResponseEntity<CommonResponse<?>> getCampaignSalesDifference(@RequestParam("start") LocalDate date,
+                                                                        @AuthenticationPrincipal UserDetails userDetails) {
+        List<CampaignSummaryResponseDto> campaignAllSales = campaignOptionDetailsService.getCampaignAllSales(date, userDetails.getUsername());
+
+        return new ResponseEntity<>(CommonResponse
+                .<List<CampaignSummaryResponseDto>>builder("success : getMyCampaignDetails")
+                .data(campaignAllSales)
+                .build(), HttpStatus.OK);
     }
 }
 
