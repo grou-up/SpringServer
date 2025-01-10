@@ -1,4 +1,4 @@
-package growup.spring.springserver.tempdomain;
+package growup.spring.springserver.margin.domain;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import jakarta.persistence.*;
@@ -25,6 +25,7 @@ public class Margin {
     private Long marClicks;  // 클릭 수 -> 클릭률 구해야함
     private Long marAdConversionSales;  // 광고 전환 판매 수
     private Double marAdCost;
+    private Double marSales;
     // 계산필요
     private Long marAdMargin;  // 광고 머진 계산필요
     private Double marNetProfit;  // 순이익
