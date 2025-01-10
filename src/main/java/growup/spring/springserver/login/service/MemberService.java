@@ -1,5 +1,8 @@
 package growup.spring.springserver.login.service;
 
+import growup.spring.springserver.exception.login.MemberInvalidPasswordException;
+import growup.spring.springserver.exception.login.MemberKakaoLoginAccountException;
+import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.global.config.JwtTokenProvider;
 import growup.spring.springserver.global.domain.TypeChange;
 import growup.spring.springserver.login.domain.Member;
@@ -28,7 +31,7 @@ public class MemberService {
     public void signup(LoginSignUpReqDto loginCreateReqDto) {
         memberRepository.findByEmail(loginCreateReqDto.email())
                 .ifPresent(email -> {
-                    throw new IllegalArgumentException("already member exist");
+                    throw new MemberNotFoundException();
                 });
         String encode = passwordEncoder.encode(loginCreateReqDto.password());
         Member member = typeChange.memberCreateDtoToMember(loginCreateReqDto, encode);
@@ -41,13 +44,15 @@ public class MemberService {
         log.info("Check account validity");
         Member findmember = memberRepository.findByEmail(loginSignInReqDto.email())
                 .filter(it -> {
-                    if (it.getPassword() == null || it.getPassword().isEmpty()) {
-                        // 비밀번호가 없는 경우, 카카오 계정으로 가입된 사용자
-                        throw new IllegalArgumentException("This account is registered with Kakao login.");
+                    // 비밀번호가 없는 경우, 카카오 계정으로 가입된 사용자
+                    if (it.getPassword() == null || it.getPassword().isEmpty())
+                        throw new MemberKakaoLoginAccountException();
+                    if (!passwordEncoder.matches(loginSignInReqDto.password(), it.getPassword())) {
+                        throw new MemberInvalidPasswordException();
                     }
-                    return passwordEncoder.matches(loginSignInReqDto.password(), it.getPassword());
+                    return true;
                 })
-                .orElseThrow(() -> new IllegalArgumentException("Account cannot be found"));
+                .orElseThrow(MemberNotFoundException::new);
 
         String memberSpecification = String.format("%s:%s:%s", findmember.getEmail(), findmember.getName(), findmember.getRole());
 
@@ -60,7 +65,7 @@ public class MemberService {
 
     public LoginDataResDto getMyEmailAndRole(String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("Account cannot be found"));
+                MemberNotFoundException::new);
 
         return typeChange.MemberToMyEmailAndRoleDto(member);
     }

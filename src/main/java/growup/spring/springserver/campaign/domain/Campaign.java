@@ -22,6 +22,8 @@ public class Campaign {
 
     private String camAdType;
 
+    private Boolean camOpen = false;
+
     @ManyToOne
     @JoinColumn(name = "email", referencedColumnName = "email")
     private Member member;

@@ -1,7 +1,7 @@
 package growup.spring.springserver.keyword.service;
 
-import growup.spring.springserver.exclusionKeyword.dto.ExclusionKeywordResponseDto;
-import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordService;
+import growup.spring.springserver.exception.InvalidDateFormatException;
+import growup.spring.springserver.exception.keyword.CampaignKeywordNotFoundException;
 import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.TypeChangeKeyword;
@@ -33,10 +33,10 @@ public class KeywordService {
             endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
             if(startDate.isAfter(endDate)) throw new DataFormatException();
         }catch (DateTimeParseException | DataFormatException e){
-            throw new IllegalArgumentException("날짜 형식이 이상합니다");
+            throw new InvalidDateFormatException();
         }
-        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(startDate,endDate,campaignId);
-        if(data.isEmpty()) throw new NullPointerException("해당 캠페인의 키워드가 없습니다.");
+        List<Keyword> data = keywordRepository.findAllByDateANDFlag(startDate,endDate,campaignId);
+        if(data.isEmpty()) throw new CampaignKeywordNotFoundException();
         HashMap<String,KeywordResponseDto> map = new HashMap<>();
         for(Keyword keyword : data){
             if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().isEmpty()){

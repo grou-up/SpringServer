@@ -4,6 +4,9 @@ import growup.spring.springserver.campaignoptiondetails.TypeChangeCampaignOption
 import growup.spring.springserver.campaignoptiondetails.domain.CampaignOptionDetails;
 import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetailsResponseDto;
 import growup.spring.springserver.campaignoptiondetails.repository.CampaignOptionDetailsRepository;
+import growup.spring.springserver.exception.InvalidDateFormatException;
+import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionDataNotFoundException;
+import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionNotFoundException;
 import growup.spring.springserver.execution.repository.ExecutionRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,19 +26,18 @@ public class CampaignOptionDetailsService {
 
     public List<CampaignOptionDetails> getRawCampaignDetails(LocalDate start, LocalDate end, long id) {
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("날짜 형식이 이상합니다");
+            throw new InvalidDateFormatException();
         }
 
         List<Long> byCampaignCampaignIds = executionRepository.findExecutionIdsByCampaignId(id);
         if (byCampaignCampaignIds.isEmpty()) {
-            throw new IllegalArgumentException("해당 캠페인의 옵션이 없습니다.");
+            throw new CampaignOptionNotFoundException();
         }
         List<CampaignOptionDetails> byExecutionIdsAndDateRange = campaignOptionDetailsRepository.findByExecutionIdsAndDateRange(
                 byCampaignCampaignIds, start, end);
         if (byExecutionIdsAndDateRange.isEmpty()) {
-            throw new IllegalArgumentException("해당 옵션의 데이터가 존재 하지 않습니다.");
+            throw new CampaignOptionDataNotFoundException();
         }
-
         return byExecutionIdsAndDateRange;
     }
     public List<CampaignOptionDetailsResponseDto> getCampaignDetailsByCampaignsIds(LocalDate start, LocalDate end, long id) {

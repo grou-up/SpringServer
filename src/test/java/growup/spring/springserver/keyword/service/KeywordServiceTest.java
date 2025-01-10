@@ -1,8 +1,7 @@
 package growup.spring.springserver.keyword.service;
 
-import growup.spring.springserver.exclusionKeyword.domain.ExclusionKeyword;
-import growup.spring.springserver.exclusionKeyword.dto.ExclusionKeywordResponseDto;
-import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordService;
+import growup.spring.springserver.exception.InvalidDateFormatException;
+import growup.spring.springserver.exception.keyword.CampaignKeywordNotFoundException;
 import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
@@ -41,7 +40,7 @@ public class KeywordServiceTest {
         //when
         doReturn(List.of()).when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         //given
-        final Exception result  = assertThrows(NullPointerException.class,
+        final Exception result  = assertThrows(CampaignKeywordNotFoundException.class,
                 ()-> keywordService.getKeywordsByCampaignId("2024-12-24","2024-12-24",1L) );
         //then
         assertThat(result.getMessage()).isEqualTo("해당 캠페인의 키워드가 없습니다.");
@@ -53,10 +52,10 @@ public class KeywordServiceTest {
         final String start = "2024-12-14";
         final String end = "2023-12-14";
         //given
-        final Exception result  = assertThrows(IllegalArgumentException.class,
+        final Exception result  = assertThrows(InvalidDateFormatException.class,
                 ()-> keywordService.getKeywordsByCampaignId(start,end,1L) );
         //then
-        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다");
+        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다.");
     }
 
     @ParameterizedTest
@@ -67,10 +66,10 @@ public class KeywordServiceTest {
         final String start = wrongDataFormat;
         final String end = "2023-12-14";
         //given
-        final Exception result  = assertThrows(IllegalArgumentException.class,
+        final Exception result  = assertThrows(InvalidDateFormatException.class,
                 ()-> keywordService.getKeywordsByCampaignId(start,end,1L) );
         //then
-        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다");
+        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다.");
     }
 
     @Test

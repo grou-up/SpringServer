@@ -1,5 +1,6 @@
 package growup.spring.springserver.login.service;
 
+import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.global.domain.TypeChange;
 import growup.spring.springserver.global.support.Role;
 import growup.spring.springserver.login.domain.Member;
@@ -34,12 +35,12 @@ class MemberServiceTest {
         // given
         doReturn(Optional.empty()).when(memberRepository).findByEmail(any(String.class));
         // when
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        MemberNotFoundException ex = assertThrows(
+                MemberNotFoundException.class,
                 () -> memberService.getMyEmailAndRole("test@test.com")
         );
         //then
-        assertThat(ex.getMessage()).isEqualTo("Account cannot be found");
+        assertThat(ex.getMessage()).isEqualTo("존재하지 않는 회원입니다.");
     }
 
     @Test

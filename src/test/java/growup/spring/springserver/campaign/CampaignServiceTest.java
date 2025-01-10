@@ -4,6 +4,8 @@ import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.dto.CampaignResponseDto;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.campaign.service.CampaignService;
+import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
+import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class CampaignServiceTest {
+class CampaignServiceTest {
     @InjectMocks
     private CampaignService campaignService;
     @Mock
@@ -39,10 +41,10 @@ public class CampaignServiceTest {
         doReturn(Optional.of(getMember())).when(memberRepository).findByEmail(any(String.class));
         doReturn(new ArrayList<Campaign>()).when(campaignRepository).findAllByMember(any(Member.class));
         //when
-        final Exception result = assertThrows(NullPointerException.class,
+        final Exception result = assertThrows(CampaignNotFoundException.class,
                 ()->campaignService.getMyCampaigns("test@test.com"));
         //then
-        assertThat(result.getMessage()).isEqualTo("현재 등록된 캠패인이 없습니다");
+        assertThat(result.getMessage()).isEqualTo("현재 등록된 캠페인이 없습니다.");
     }
 
     @Test
@@ -51,10 +53,10 @@ public class CampaignServiceTest {
         //given
         doReturn(Optional.empty()).when(memberRepository).findByEmail(any(String.class));
         //when
-        final NullPointerException result = assertThrows(NullPointerException.class,
+        final MemberNotFoundException result = assertThrows(MemberNotFoundException.class,
                ()-> campaignService.getMyCampaigns("test@test.com"));
         //then
-        assertThat(result.getMessage()).isEqualTo("해당 멤버가 존재하지 않습니다.");
+        assertThat(result.getMessage()).isEqualTo("존재하지 않는 회원입니다.");
     }
 
     @Test
