@@ -49,10 +49,11 @@ class MarginRepositoryTest {
     void test1() {
         // Given
         List<Long> campaignIds = List.of(campaign1.getCampaignId(), campaign2.getCampaignId());
-        List<LocalDate> dates = List.of(LocalDate.of(2024, 11, 10), LocalDate.of(2024, 11, 11));
+        LocalDate start = LocalDate.of(2024, 11, 10);
+        LocalDate end = LocalDate.of(2024, 11, 11);
 
         // When
-        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, dates);
+        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, start, end);
 
         // Then
         assertThat(margins).hasSize(3);
@@ -66,10 +67,11 @@ class MarginRepositoryTest {
     void test2() {
         // Given
         List<Long> campaignIds = List.of(campaign3.getCampaignId());
-        List<LocalDate> dates = List.of(LocalDate.of(2024, 11, 10), LocalDate.of(2024, 11, 11));
+        LocalDate start = LocalDate.of(2024, 11, 10);
+        LocalDate end = LocalDate.of(2024, 11, 11);
 
         // When
-        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, dates);
+        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, start, end);
 
         // Then
         assertThat(margins).isEmpty();
@@ -80,10 +82,11 @@ class MarginRepositoryTest {
     void test3() {
         // Given
         List<Long> campaignIds = List.of(campaign1.getCampaignId(), campaign2.getCampaignId());
-        List<LocalDate> dates = List.of(LocalDate.of(2024, 11, 12));
+        LocalDate start = LocalDate.of(2024, 11, 13);
+        LocalDate end = LocalDate.of(2024, 11, 14);
 
         // When
-        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, dates);
+        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, start, end);
 
         // Then
         assertThat(margins).isEmpty();

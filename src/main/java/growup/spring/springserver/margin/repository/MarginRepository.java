@@ -13,7 +13,9 @@ import java.util.List;
 @Repository
 public interface MarginRepository extends JpaRepository<Margin, Long> {
 
-    @Query("SELECT m FROM Margin m WHERE m.campaign.campaignId IN :campaignIds AND m.marDate IN :dates")
-    List<Margin> findByCampaignIdsAndDates(@Param("campaignIds") List<Long> campaignIds, @Param("dates") List<LocalDate> dates);
-
+    @Query("SELECT m FROM Margin m WHERE m.campaign.campaignId IN :campaignIds AND m.marDate BETWEEN :startDate AND :endDate")
+    List<Margin> findByCampaignIdsAndDates(
+            @Param("campaignIds") List<Long> campaignIds,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

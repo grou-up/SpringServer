@@ -40,11 +40,9 @@ public class MarginService {
                 .map(Campaign::getCampaignId)
                 .toList();
 
-        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, List.of(targetDate, difTargetDate));
-
+        List<Margin> margins = marginRepository.findByCampaignIdsAndDates(campaignIds, difTargetDate, targetDate);
         Map<Long, List<Margin>> marginMap = margins.stream()
                 .collect(Collectors.groupingBy(m -> m.getCampaign().getCampaignId()));
-
         List<MarginSummaryResponseDto> summaries = new ArrayList<>();
 
         for (Campaign campaign : campaignList) {
@@ -52,11 +50,10 @@ public class MarginService {
             // 오늘과 어제 데이터 필터링
             Margin todayMargin = getMarginForDateOrDefault(marginMap, campaign, targetDate);
             Margin yesterdayMargin = getMarginForDateOrDefault(marginMap, campaign, difTargetDate);
-
             MarginSummaryResponseDto summary = TypeChangeMargin.entityToMarginSummaryResponseDto(
                     campaign, todayMargin, yesterdayMargin);
-
             summaries.add(summary);
+
         }
 
         return summaries;
