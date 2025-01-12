@@ -17,12 +17,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -37,137 +40,8 @@ public class KeywordServiceTest {
     private KeywordService keywordService;
 
     @Test
-    @DisplayName("getKeyWords(): Error 1. 해당 조건 데이터 없음")
-    void test1_1(){
-        //when
-        doReturn(List.of()).when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final Exception result  = assertThrows(CampaignKeywordNotFoundException.class,
-                ()-> keywordService.getKeywordsByCampaignId("2024-12-24","2024-12-24",1L) );
-        //then
-        assertThat(result.getMessage()).isEqualTo("해당 캠페인의 키워드가 없습니다.");
-    }
-    @Test
-    @DisplayName("getKeyWords(): Error 2. 조회 시작날과 끝의 순서가 이상할 때")
-    void test1_2(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2023-12-14";
-        //given
-        final Exception result  = assertThrows(InvalidDateFormatException.class,
-                ()-> keywordService.getKeywordsByCampaignId(start,end,1L) );
-        //then
-        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다.");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"20-10-11","2024-1-1","2024-01-1","2024-01-10-17"})
-    @DisplayName("getKeyWords(): Error 3. LocalDate 형식 오류")
-    void test1_3(String wrongDataFormat){
-        //when
-        final String start = wrongDataFormat;
-        final String end = "2023-12-14";
-        //given
-        final Exception result  = assertThrows(InvalidDateFormatException.class,
-                ()-> keywordService.getKeywordsByCampaignId(start,end,1L) );
-        //then
-        assertThat(result.getMessage()).isEqualTo("날짜 형식이 이상합니다.");
-    }
-
-    @Test
     @DisplayName("getKeyWords(): Success")
-    void test1_4(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
-                ,getKeyword("keyword2",0.0,0.0,0L,0L,0L,0.0)
-                ,getKeyword("keyword3",0.0,0.0,0L,0L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(3);
-    }
-
-    @Test
-    @DisplayName("getKeyWords(): Error 4. Roas, Cvr 계산 시 분모가 0 일 경우?")
-    void test1_5(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
-                    ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
-                    ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getKeyKeyword()).isEqualTo("keyword1");
-        assertThat(result.get(0).getKeyCvr()).isEqualTo(0.0);
-    }
-
-    @Test
-    @DisplayName("getKeyWords(): Success 2. keyClickRate Test")
-    void test1_6(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,0L,11000.0)
-                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0)
-                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0)))
-                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getKeyClicks()).isEqualTo(30);
-        assertThat(result.get(0).getKeyImpressions()).isEqualTo(369);
-        assertThat(result.get(0).getKeyClickRate()).isEqualTo(((Math.round(((double)30/(double) 369)*10000))/100.0));
-    }
-
-    @Test
-    @DisplayName("getKeyWords(): Success 3. cvr Test")
     void test1_7(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
-                ,getKeyword("keyword1",0.0,0.0,10L,123L,4L,0.0)
-                ,getKeyword("keyword1",0.0,0.0,112L,123L,34L,0.0)))
-                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getKeyClicks()).isEqualTo(132);
-        assertThat(result.get(0).getKeyTotalSales()).isEqualTo(40);
-        assertThat(result.get(0).getKeyCvr()).isEqualTo(((Math.round(((double)40/(double) 132)*10000))/100.0));
-    }
-
-    @Test
-    @DisplayName("getKeyWords(): Success 4. cpc Test")
-    void test1_8(){
-        //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
-        doReturn(List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
-                ,getKeyword("keyword1",660.0,0.0,10L,123L,4L,0.0)
-                ,getKeyword("keyword1",660.0,0.0,112L,123L,34L,0.0)))
-                .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
-        //given
-        final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
-        //then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getKeyClicks()).isEqualTo(132);
-        assertThat(result.get(0).getKeyAdcost()).isEqualTo(1980);
-        assertThat(result.get(0).getKeyCpc()).isEqualTo(((Math.round(((double)1980/(double) 132)*100))/100.0));
-    }
-
-    @Test
-    @DisplayName("getKeyWords(): Success 5. 제외 키워드 처리")
-    void test1_9(){
         //when
         final String start = "2024-12-14";
         final String end = "2025-12-14";
@@ -189,9 +63,47 @@ public class KeywordServiceTest {
         assertThat(result.get(2).getKeyExcludeFlag()).isFalse();
     }
 
+    //기존 method 에서 분리
+    @Test
+    @DisplayName("checkDateFormat(): Error 1. 조회 시작날과 끝의 순서가 이상할 때")
+    void test2_1(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2023-12-14";
+        //given
+        final boolean result  = keywordService.checkDateFormat(start,end);
+        //then
+        assertThat(result).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"20-10-11","2024-1-1","2024-01-1","2024-01-10-17"})
+    @DisplayName("checkDateFormat(): Error 2. LocalDate 형식 오류")
+    void test2_2(String wrongDataFormat){
+        //when
+        final String start = wrongDataFormat;
+        final String end = "2023-12-14";
+        //given
+        final boolean result  = keywordService.checkDateFormat(start,end);
+        //then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("checkDateFormat(): Success")
+    void test2_3(){
+        //when
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        //given
+        final boolean result  = keywordService.checkDateFormat(start,end);
+        //then
+        assertThat(result).isTrue();
+    }
+
     @DisplayName("getExclusionKeywordsToSet(): Error1. 제외키워드가 없을 경우")
     @Test
-    void test2_1(){
+    void test3_1(){
         //when
         doThrow(IllegalArgumentException.class)
                 .when(exclusionKeywordService).getExclusionKeywords(1L);
@@ -203,7 +115,7 @@ public class KeywordServiceTest {
 
     @DisplayName("getExclusionKeywordsToSet(): Success")
     @Test
-    void test2_2(){
+    void test3_2(){
         //when
         doReturn(List.of(
                 getExclusionKeyword("exKey1",1L,LocalDate.now()),
@@ -216,6 +128,104 @@ public class KeywordServiceTest {
         assertThat(result).hasSize(3);
         assertThat(result.contains("exKey1")).isTrue();
         assertThat(result.contains("exKey4")).isFalse();
+    }
+
+    @Test
+    @DisplayName("summeryKeywordData(): Error 1. 해당 데이터 없음")
+    void test4_1(){
+        //when
+        List<Keyword> data = List.of();
+        //given
+        final CampaignKeywordNotFoundException result  = assertThrows(CampaignKeywordNotFoundException.class,
+                ()-> keywordService.summeryKeywordData(data) );
+        //then
+        assertThat(result.getErrorCode().getMessage()).isEqualTo("해당 캠페인의 키워드가 없습니다.");
+    }
+
+    @Test
+    @DisplayName("summeryKeywordData(): Error 1. Roas, Cvr 계산 시 분모가 0 일 경우?")
+    void test4_2(){
+        //when
+        List<Keyword> data = List.of(getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,0L,0L,0L,0.0));
+        //given
+        final HashMap<String,KeywordResponseDto> result  = keywordService.summeryKeywordData(data);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get("keyword1").getKeyKeyword()).isEqualTo("keyword1");
+        assertThat(result.get("keyword1").getKeyCvr()).isEqualTo(0.0);
+    }
+
+    @Test
+    @DisplayName("summeryKeywordData(): Success 1. keyClickRate Test")
+    void test4_3(){
+        //when
+        List<Keyword> data = List.of(getKeyword("keyword1",660.0,0.0,10L,123L,0L,11000.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,0L,0.0));
+        //given
+        final HashMap<String,KeywordResponseDto> result  = keywordService.summeryKeywordData(data);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get("keyword1").getKeyClicks()).isEqualTo(30);
+        assertThat(result.get("keyword1").getKeyImpressions()).isEqualTo(369);
+        assertThat(result.get("keyword1").getKeyClickRate()).isEqualTo(((Math.round(((double)30/(double) 369)*10000))/100.0));
+    }
+
+    @Test
+    @DisplayName("summeryKeywordData(): Success 2. cvr Test")
+    void test4_4(){
+        //when
+        List<Keyword> data = List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
+                ,getKeyword("keyword1",0.0,0.0,10L,123L,4L,0.0)
+                ,getKeyword("keyword1",0.0,0.0,112L,123L,34L,0.0));
+        //given
+        final HashMap<String,KeywordResponseDto> result  = keywordService.summeryKeywordData(data);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get("keyword1").getKeyClicks()).isEqualTo(132);
+        assertThat(result.get("keyword1").getKeyTotalSales()).isEqualTo(40);
+        assertThat(result.get("keyword1").getKeyCvr()).isEqualTo(((Math.round(((double)40/(double) 132)*10000))/100.0));
+    }
+
+    @Test
+    @DisplayName("summeryKeywordData(): Success 3. cpc Test")
+    void test4_5(){
+        //when
+        List<Keyword> data = List.of(getKeyword("keyword1",660.0,0.0,10L,123L,2L,11000.0)
+                ,getKeyword("keyword1",660.0,0.0,10L,123L,4L,0.0)
+                ,getKeyword("keyword1",660.0,0.0,112L,123L,34L,0.0));
+        //given
+        final HashMap<String,KeywordResponseDto> result  = keywordService.summeryKeywordData(data);
+        //then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get("keyword1").getKeyClicks()).isEqualTo(132);
+        assertThat(result.get("keyword1").getKeyAdcost()).isEqualTo(1980);
+        assertThat(result.get("keyword1").getKeyCpc()).isEqualTo(((Math.round(((double)1980/(double) 132)*100))/100.0));
+    }
+
+    @DisplayName("checkKeyType()")
+    @Test
+    void test5_1(){
+        //when
+        HashMap<String,KeywordResponseDto> map = new HashMap<>();
+        Set<String> exclusionKeys = new HashSet<>();
+        map.put("k1",KeywordResponseDto.builder().build());
+        map.put("k2",KeywordResponseDto.builder().build());
+        map.put("k3",KeywordResponseDto.builder().build());
+        map.put("k4",KeywordResponseDto.builder().build());
+        exclusionKeys.add("k2");
+        //given
+        final List<KeywordResponseDto> result = keywordService.checkKeyType(map,exclusionKeys);
+        //then
+        assertThat(result.get(1).getKeyExcludeFlag()).isEqualTo(true);
+    }
+
+    @DisplayName("findKeywordsByDateAndCampaignIdAndKeys() : ")
+    @Test
+    void test6_1(){
+
     }
 
     public ExclusionKeywordResponseDto getExclusionKeyword(String key,
