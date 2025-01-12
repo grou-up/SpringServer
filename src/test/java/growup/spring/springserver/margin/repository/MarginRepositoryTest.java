@@ -5,6 +5,7 @@ import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.domain.Margin;
+import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class MarginRepositoryTest {
     private MarginRepository marginRepository;
 
     private Member member;
-    private Campaign campaign1, campaign2, campaign3;
+    private Campaign campaign1, campaign2, campaign3,campaign4;
 
     @BeforeEach
     void setup() {
@@ -37,16 +38,18 @@ class MarginRepositoryTest {
         campaign1 = campaignRepository.save(newCampaign(member, 1L));
         campaign2 = campaignRepository.save(newCampaign(member, 2L));
         campaign3 = campaignRepository.save(newCampaign(member, 3L));
+        campaign4 = campaignRepository.save(newCampaign(member, 4L));
 
 
-        marginRepository.save(newMargin(LocalDate.of(2024, 11, 10), campaign1, 100L, 200.0, 50L));
-        marginRepository.save(newMargin(LocalDate.of(2024, 11, 11), campaign1, 120L, 250.0, 60L));
-        marginRepository.save(newMargin(LocalDate.of(2024, 11, 10), campaign2, 150L, 300.0, 75L));
+        marginRepository.save(newMargin(LocalDate.of(2024, 11, 10), campaign1, 100L, 200.0, 50L,100.0));
+        marginRepository.save(newMargin(LocalDate.of(2024, 11, 11), campaign1, 120L, 250.0, 60L,200.0));
+        marginRepository.save(newMargin(LocalDate.of(2024, 11, 10), campaign2, 150L, 300.0, 75L,100.0));
+        marginRepository.save(newMargin(LocalDate.of(2024, 11, 2), campaign4, 150L, 300.0, 75L,250.0));
     }
 
     @Test
-    @DisplayName("findByCampaignIdsAndDates: Success case - Margins found")
-    void test1() {
+    @DisplayName("findByCampaignIdsAndDates(): Success case - Margins found")
+    void findByCampaignIdsAndDates_test1() {
         // Given
         List<Long> campaignIds = List.of(campaign1.getCampaignId(), campaign2.getCampaignId());
         LocalDate start = LocalDate.of(2024, 11, 10);
@@ -62,6 +65,26 @@ class MarginRepositoryTest {
         assertThat(margins).noneMatch(m -> m.getCampaign().getCampaignId().equals(campaign3.getCampaignId()));
     }
 
+    @Test
+    @DisplayName("find7daysTotalsByCampaignIds(): Success case 1")
+    void find7daysTotalsByCampaignIds_test1(){
+        // Given
+        List<Long> campaignIds = List.of(
+                campaign1.getCampaignId(),
+                campaign2.getCampaignId(),
+                campaign3.getCampaignId(),
+                campaign4.getCampaignId());
+        LocalDate start = LocalDate.of(2024, 11, 3);
+        LocalDate end = LocalDate.of(2024, 11, 10);
+
+        // when
+        List<DailyAdSummaryDto> marginRepository7daysTotalsByCampaignIds = marginRepository.find7daysTotalsByCampaignIds(campaignIds, start, end);
+        // then
+        assertThat(marginRepository7daysTotalsByCampaignIds).hasSize(1);
+        assertThat(marginRepository7daysTotalsByCampaignIds.get(0).getMarAdCost()).isEqualTo(500.0);
+        assertThat(marginRepository7daysTotalsByCampaignIds.get(0).getMarSales()).isEqualTo(200.0);
+        assertThat(marginRepository7daysTotalsByCampaignIds.get(0).getMarRoas()).isEqualTo(40.0);
+    }
     @Test
     @DisplayName("findByCampaignIdsAndDates(): error 1. No matching margins")
     void test2() {
@@ -105,12 +128,13 @@ class MarginRepositoryTest {
                 .build();
     }
 
-    private Margin newMargin(LocalDate date, Campaign campaign, Long impressions, Double cost, Long conversions) {
+    private Margin newMargin(LocalDate date, Campaign campaign, Long impressions, Double cost, Long conversions,Double sales) {
         return Margin.builder()
                 .marDate(date)
                 .campaign(campaign)
                 .marImpressions(impressions)
                 .marAdCost(cost)
+                .marSales(sales)
                 .marAdConversionSales(conversions)
                 .build();
     }
