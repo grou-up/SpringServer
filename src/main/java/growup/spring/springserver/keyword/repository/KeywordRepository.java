@@ -18,4 +18,13 @@ public interface KeywordRepository extends JpaRepository <Keyword,Long>{
     List<Keyword> findAllByDateANDCampaign(@Param("startDate") LocalDate startDate,
                                            @Param("endDate")LocalDate endDate,
                                            @Param("campaignId")Long campaignId);
+
+    @Query("SELECT k FROM Keyword k WHERE k.keyDate BETWEEN :start AND :end " +
+            "AND k.campaign.campaignId = :campaignId " +
+            "AND k.keyKeyword IN :keys")
+    List<Keyword> findKeywordsByDateAndCampaignIdAndKeys(
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("campaignId") Long campaignId,
+            @Param("keys") List<String> keys);
 }

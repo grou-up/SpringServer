@@ -7,6 +7,7 @@ import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordServi
 import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
+import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,10 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -205,7 +203,7 @@ public class KeywordServiceTest {
         assertThat(result.get("keyword1").getKeyCpc()).isEqualTo(((Math.round(((double)1980/(double) 132)*100))/100.0));
     }
 
-    @DisplayName("checkKeyType()")
+    @DisplayName("checkKeyType() : Success")
     @Test
     void test5_1(){
         //when
@@ -222,10 +220,48 @@ public class KeywordServiceTest {
         assertThat(result.get(1).getKeyExcludeFlag()).isEqualTo(true);
     }
 
-    @DisplayName("findKeywordsByDateAndCampaignIdAndKeys() : ")
+    @DisplayName("addBids() : Success")
     @Test
     void test6_1(){
+        //when
+        HashMap<String,KeywordResponseDto> map = new HashMap<>();
+        map.put("k1",KeywordResponseDto.builder().build());
+        map.put("k2",KeywordResponseDto.builder().build());
+        map.put("k3",KeywordResponseDto.builder().build());
+        map.put("k4",KeywordResponseDto.builder().build());
+        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidRequestDto("k1",1L),
+                getKeywordBidRequestDto("k2",2L),
+                getKeywordBidRequestDto("k3",3L),
+                getKeywordBidRequestDto("k4",4L));
+        //given
+        final List<KeywordResponseDto> result = keywordService.addBids(map,keywordBidDtos);
+        //then
+        assertThat(result.get(0).getBid()).isEqualTo(1L);
+        assertThat(result.get(1).getBid()).isEqualTo(2L);
+        assertThat(result.get(2).getBid()).isEqualTo(3L);
+        assertThat(result.get(3).getBid()).isEqualTo(4L);
+    }
 
+    @DisplayName("getKeywordsByDateAndCampaignIdAndKeys() : Success")
+    @Test
+    void test7_1(){
+        //when
+        doReturn(List.of(getKeyword("k1",0.0,0.0,0L,0L,0L,0.0)
+                        ,getKeyword("k2",0.0,0.0,0L,0L,0L,0.0)
+                        ,getKeyword("k3",0.0,0.0,0L,0L,0L,0.0)))
+                .when(keywordRepository).findKeywordsByDateAndCampaignIdAndKeys(any(LocalDate.class),any(LocalDate.class),any(Long.class),any(List.class));
+        final String start = "2024-12-14";
+        final String end = "2025-12-14";
+        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidRequestDto("k1",1L),
+                getKeywordBidRequestDto("k2",2L),
+                getKeywordBidRequestDto("k3",3L));
+        //given
+        List<KeywordResponseDto> result = keywordService.getKeywordsByDateAndCampaignIdAndKeys(start,end,1L,keywordBidDtos);
+        //then
+        assertThat(result).hasSize(3);
+        assertThat(result.get(0).getBid()).isEqualTo(1L);
+        assertThat(result.get(1).getBid()).isEqualTo(2L);
+        assertThat(result.get(2).getBid()).isEqualTo(3L);
     }
 
     public ExclusionKeywordResponseDto getExclusionKeyword(String key,
@@ -249,6 +285,7 @@ public class KeywordServiceTest {
                 .keyCvr(0.0)
                 .keyClickRate(0.0)
                 .keyRoas(0.0)
+                .keyDate(LocalDate.of(2024,11,1))
                 .keyKeyword(title)
                 .keyAdcost(adCost)
                 .keyCpc(cpc)
@@ -256,6 +293,12 @@ public class KeywordServiceTest {
                 .keyImpressions(impression)
                 .keyTotalSales(totalSale)
                 .keyAdsales(adSale)
+                .build();
+    }
+    public static KeywordBidDto getKeywordBidRequestDto(String keyword,Long bid){
+        return KeywordBidDto.builder()
+                .keyword(keyword)
+                .bid(bid)
                 .build();
     }
 

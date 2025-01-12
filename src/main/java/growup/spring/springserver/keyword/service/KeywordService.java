@@ -8,16 +8,14 @@ import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.TypeChangeKeyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
+import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
@@ -83,5 +81,26 @@ public class KeywordService {
             keywordResponseDtos.add(map.get(key));
         }
         return keywordResponseDtos;
+    }
+
+    public List<KeywordResponseDto> addBids(HashMap<String,KeywordResponseDto> map,List<KeywordBidDto> keys){
+        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
+        for(KeywordBidDto dto : keys){
+            map.get(dto.getKeyword()).setBid(dto.getBid());
+            keywordResponseDtos.add(map.get(dto.getKeyword()));
+        }
+        return keywordResponseDtos;
+    }
+
+    public List<KeywordResponseDto> getKeywordsByDateAndCampaignIdAndKeys(String start,
+                                                                          String end,
+                                                                          Long campaignId,
+                                                                          List<KeywordBidDto> keys){
+        if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
+        LocalDate startDate  = LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
+        LocalDate endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
+        List<Keyword> data =
+                keywordRepository.findKeywordsByDateAndCampaignIdAndKeys(startDate,endDate,campaignId,keys.stream().map(KeywordBidDto::getKeyword).toList());
+        return addBids(summeryKeywordData(data),keys);
     }
 }
