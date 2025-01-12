@@ -6,6 +6,7 @@ import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.domain.Margin;
+import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.repository.MarginRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +44,7 @@ class MarginServiceTest {
         doReturn(Optional.of(getMember())).when(memberRepository).findByEmail(any(String.class));
         doReturn(new ArrayList<Campaign>()).when(campaignRepository).findAllByMember(any(Member.class));
         //when
-        final Exception result = assertThrows(CampaignNotFoundException.class,
+        final CampaignNotFoundException result = assertThrows(CampaignNotFoundException.class,
                 ()->marginService.getCampaignAllSales("test@test.com", LocalDate.of(2024,11,11)));
         //then
         assertThat(result.getMessage()).isEqualTo("현재 등록된 캠페인이 없습니다.");
@@ -194,6 +195,100 @@ class MarginServiceTest {
         assertThat(campaign2.getDifferentSales()).isEqualTo(60.0); // 차이
     }
 
+    @Test
+    @DisplayName("findByCampaignIdsAndDates(): Success - 7일간 데이터 요약")
+    void test5_findByCampaignIdsAndDates() {
+        // Given
+        LocalDate today = LocalDate.of(2024, 11, 11);
+        LocalDate sevenDaysAgo = today.minusDays(7);
+
+        List<Campaign> campaigns = List.of(
+                Campaign.builder().campaignId(1L).camCampaignName("Campaign 1").build(),
+                Campaign.builder().campaignId(2L).camCampaignName("Campaign 2").build()
+        );
+
+        // 7일 데이터를 생성 (DailyAdSummaryDto는 Mock된 결과로 사용)
+        List<DailyAdSummaryDto> dailySummaries = List.of(
+                new DailyAdSummaryDto(today, 200.0, 200.0, 1.0), // 오늘 데이터
+                new DailyAdSummaryDto(sevenDaysAgo, 180.0, 180.0, 1.0) // 7일 전 데이터
+        );
+
+        // Mock 설정
+        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
+        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(dailySummaries).when(marginRepository).find7daysTotalsByCampaignIds(
+                campaigns.stream().map(Campaign::getCampaignId).toList(),
+                sevenDaysAgo,
+                today
+        );
+
+        // When
+        List<DailyAdSummaryDto> result = marginService.findByCampaignIdsAndDates("test@test.com", today);
+        System.out.println("result = " + result);
+
+        // Then
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(2);
+
+        DailyAdSummaryDto summary1 = result.get(0);
+        assertThat(summary1.getMarDate()).isEqualTo(today);
+        assertThat(summary1.getMarAdCost()).isEqualTo(200.0);
+        assertThat(summary1.getMarSales()).isEqualTo(200.0);
+        assertThat(summary1.getMarRoas()).isEqualTo(1.0);
+
+        DailyAdSummaryDto summary2 = result.get(1);
+        assertThat(summary2.getMarDate()).isEqualTo(sevenDaysAgo);
+        assertThat(summary2.getMarAdCost()).isEqualTo(180.0);
+        assertThat(summary2.getMarSales()).isEqualTo(180.0);
+        assertThat(summary2.getMarRoas()).isEqualTo(1.0);
+    }
+    @Test
+    @DisplayName("findByCampaignIdsAndDates(): Null values handled gracefully")
+    void testFindByCampaignIdsAndDates_NullValues() {
+        // Given
+        LocalDate today = LocalDate.of(2024, 11, 11);
+        LocalDate sevenDaysAgo = today.minusDays(7);
+
+        List<Campaign> campaigns = List.of(
+                Campaign.builder().campaignId(1L).camCampaignName("Campaign 1").build()
+        );
+
+        // Mock된 DailyAdSummaryDto 생성
+        List<DailyAdSummaryDto> summaryDtos = List.of(
+                new DailyAdSummaryDto(today, 0.0, 0.0, 0.0),
+                new DailyAdSummaryDto(sevenDaysAgo, 0.0, 0.0, 0.0)
+        );
+
+        // Mock 설정
+        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
+        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(summaryDtos).when(marginRepository).find7daysTotalsByCampaignIds(
+                campaigns.stream().map(Campaign::getCampaignId).toList(),
+                sevenDaysAgo, today
+        );
+
+        // When
+        List<DailyAdSummaryDto> result = marginService.findByCampaignIdsAndDates("test@test.com", today);
+
+        // Then
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(2);
+
+        // 첫 번째 DTO 검증
+        DailyAdSummaryDto summary1 = result.get(0);
+        assertThat(summary1.getMarDate()).isEqualTo(today);
+        assertThat(summary1.getMarAdCost()).isEqualTo(0.0); // Null 처리로 기본값 확인
+        assertThat(summary1.getMarSales()).isEqualTo(0.0); // Null 처리로 기본값 확인
+        assertThat(summary1.getMarRoas()).isEqualTo(0.0); // ROAS 기본값 확인
+
+        // 두 번째 DTO 검증
+        DailyAdSummaryDto summary2 = result.get(1);
+        assertThat(summary2.getMarDate()).isEqualTo(sevenDaysAgo);
+        assertThat(summary2.getMarAdCost()).isEqualTo(0.0);
+        assertThat(summary2.getMarSales()).isEqualTo(0.0);
+        assertThat(summary2.getMarRoas()).isEqualTo(0.0);
+    }
+
 
     private Margin newMargin(LocalDate date, Campaign campaign,Double marsale) {
         return Margin.builder()
@@ -202,10 +297,11 @@ class MarginServiceTest {
                 .marSales(marsale)
                 .build();
     }
-
     public Member getMember() {
         return Member.builder()
                 .email("test@test.com")
                 .build();
     }
+    // Margin 리스트 생성
+
 }
