@@ -1,5 +1,7 @@
 package growup.spring.springserver.global.error;
 
+import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
+import growup.spring.springserver.global.exception.GrouException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +33,18 @@ public class ExceptionHandlerAdvice {
         log.error("Handler UnsupportedOperationException message: {}", e.getMessage());
         return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, e.getMessage());
     }
+
+    @ExceptionHandler(CampaignNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> campaignNotFoundException(CampaignNotFoundException e) {
+        log.error("Handler campaignNotFoundException message: {}", e.getErrorCode());
+        return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, e.getErrorCode().getMessage());
+    }
+
+    @ExceptionHandler(GrouException.class)
+    public ResponseEntity<ErrorResponseDto> campaignNotFoundException(GrouException e) {
+        log.error("Handler campaignNotFoundException message: {}", e.getErrorCode());
+        return ErrorResponseDto.of(HttpStatus.BAD_REQUEST, e.getErrorCode().getMessage());
+    }
+
 }
 
