@@ -3,6 +3,7 @@ package growup.spring.springserver.margin.controller;
 import com.nimbusds.jose.shaded.gson.Gson;
 import growup.spring.springserver.annotation.WithAuthUser;
 import growup.spring.springserver.global.config.JwtTokenProvider;
+import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.service.MarginService;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,4 +101,42 @@ class MarginControllerTest {
                 jsonPath("$.data[1].todaySales").value(250.0)
         );
     }
+
+    @Test
+    @WithAuthUser
+    @DisplayName("getDailyAdSummary() : 성공 케이스")
+    void getDailyAdSummary() throws Exception {
+        // Given
+        LocalDate date = LocalDate.of(2024, 12, 1);
+        List<DailyAdSummaryDto> mockResponse = List.of(
+                new DailyAdSummaryDto(date.minusDays(1), 200.0, 400.0, 200.0),
+                new DailyAdSummaryDto(date, 300.0, 600.0, 200.0)
+        );
+
+        // Mocking 서비스 호출
+        doReturn(mockResponse).when(marginService).findByCampaignIdsAndDates(any(String.class), any(LocalDate.class));
+
+        // API 호출 URL
+        final String url = "/api/margin/getDailyAdSummary?date=2024-12-01";
+
+        // When & Then
+        final ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get(url));
+        resultActions.andDo(print());
+        resultActions
+                .andExpect(status().isOk()) // HTTP 상태 코드 200
+                .andExpect(jsonPath("$.message").value("success: getDailyAdSummary")) // 응답 메시지 검증
+                .andExpect(jsonPath("$.data").isArray()) // 데이터가 배열인지 확인
+                .andExpect(jsonPath("$.data[0].marDate").value("2024-11-30"))
+                .andExpect(jsonPath("$.data[0].marAdCost").value(200.0))
+                .andExpect(jsonPath("$.data[0].marSales").value(400.0))
+                .andExpect(jsonPath("$.data[0].marRoas").value(200.0))
+                .andExpect(jsonPath("$.data[1].marDate").value("2024-12-01"))
+                .andExpect(jsonPath("$.data[1].marAdCost").value(300.0))
+                .andExpect(jsonPath("$.data[1].marSales").value(600.0))
+                .andExpect(jsonPath("$.data[1].marRoas").value(200.0));
+        // Verify 서비스 호출
+        verify(marginService).findByCampaignIdsAndDates(any(String.class), any(LocalDate.class));
+    }
+
 }
