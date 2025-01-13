@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -44,8 +45,8 @@ public class KeywordBidController {
     }
 
     @GetMapping("/gets")
-    public ResponseEntity<CommonResponse<List<KeywordResponseDto>>> getKeywordBids(@RequestParam("start") String start,
-                                                                     @RequestParam("end") String end,
+    public ResponseEntity<CommonResponse<List<KeywordResponseDto>>> getKeywordBids(@RequestParam("start") LocalDate start,
+                                                                     @RequestParam("end") LocalDate end,
                                                                      @RequestParam("campaignId") Long campaignId,
                                                                      @AuthenticationPrincipal UserDetails userDetails){
         KeywordBidResponseDto result = keywordBidService.getKeywordBids(campaignId);

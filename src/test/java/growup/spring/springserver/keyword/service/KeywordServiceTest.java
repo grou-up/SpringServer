@@ -41,8 +41,8 @@ public class KeywordServiceTest {
     @DisplayName("getKeyWords(): Success")
     void test1_7(){
         //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
+        final LocalDate start = LocalDate.of(2024,12,14);
+        final LocalDate end = LocalDate.of(2025,1,14);
         doReturn(List.of(getKeyword("exKey1",660.0,0.0,10L,123L,2L,11000.0)
                 ,getKeyword("exKey2",660.0,0.0,10L,123L,4L,0.0)
                 ,getKeyword("exKey3",660.0,0.0,112L,123L,34L,0.0)))
@@ -66,21 +66,8 @@ public class KeywordServiceTest {
     @DisplayName("checkDateFormat(): Error 1. 조회 시작날과 끝의 순서가 이상할 때")
     void test2_1(){
         //when
-        final String start = "2024-12-14";
-        final String end = "2023-12-14";
-        //given
-        final boolean result  = keywordService.checkDateFormat(start,end);
-        //then
-        assertThat(result).isFalse();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"20-10-11","2024-1-1","2024-01-1","2024-01-10-17"})
-    @DisplayName("checkDateFormat(): Error 2. LocalDate 형식 오류")
-    void test2_2(String wrongDataFormat){
-        //when
-        final String start = wrongDataFormat;
-        final String end = "2023-12-14";
+        final LocalDate start = LocalDate.of(2024,12,14);
+        final LocalDate end = LocalDate.of(2023,1,14);
         //given
         final boolean result  = keywordService.checkDateFormat(start,end);
         //then
@@ -89,10 +76,10 @@ public class KeywordServiceTest {
 
     @Test
     @DisplayName("checkDateFormat(): Success")
-    void test2_3(){
+    void test2_2(){
         //when
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
+        final LocalDate start = LocalDate.of(2024,12,14);
+        final LocalDate end = LocalDate.of(2025,1,14);
         //given
         final boolean result  = keywordService.checkDateFormat(start,end);
         //then
@@ -250,8 +237,8 @@ public class KeywordServiceTest {
                         ,getKeyword("k2",0.0,0.0,0L,0L,0L,0.0)
                         ,getKeyword("k3",0.0,0.0,0L,0L,0L,0.0)))
                 .when(keywordRepository).findKeywordsByDateAndCampaignIdAndKeys(any(LocalDate.class),any(LocalDate.class),any(Long.class),any(List.class));
-        final String start = "2024-12-14";
-        final String end = "2025-12-14";
+        final LocalDate start = LocalDate.of(2024,12,14);
+        final LocalDate end = LocalDate.of(2025,1,14);
         List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidRequestDto("k1",1L),
                 getKeywordBidRequestDto("k2",2L),
                 getKeywordBidRequestDto("k3",3L));

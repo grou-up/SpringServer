@@ -25,11 +25,9 @@ public class KeywordService {
     private KeywordRepository keywordRepository;
     @Autowired
     private ExclusionKeywordService exclusionKeywordService;
-    public List<KeywordResponseDto> getKeywordsByCampaignId(String start, String end , Long campaignId){
+    public List<KeywordResponseDto> getKeywordsByCampaignId(LocalDate start, LocalDate end , Long campaignId){
         if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
-        LocalDate startDate  = LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
-        LocalDate endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
-        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(startDate,endDate,campaignId);
+        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(start,end,campaignId);
         return checkKeyType(summeryKeywordData(data),getExclusionKeywordToSet(campaignId));
     }
 
@@ -45,13 +43,9 @@ public class KeywordService {
                 .collect(Collectors.toSet());
     }
 
-    public boolean checkDateFormat(String start , String end){
-        LocalDate startDate;
-        LocalDate endDate;
+    public boolean checkDateFormat(LocalDate start , LocalDate end){
         try{
-            startDate = LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
-            endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
-            if(startDate.isAfter(endDate)) throw new DataFormatException();
+            if(start.isAfter(end)) throw new DataFormatException();
         }catch (DateTimeParseException | DataFormatException e){
            return false;
         }
@@ -92,15 +86,13 @@ public class KeywordService {
         return keywordResponseDtos;
     }
 
-    public List<KeywordResponseDto> getKeywordsByDateAndCampaignIdAndKeys(String start,
-                                                                          String end,
+    public List<KeywordResponseDto> getKeywordsByDateAndCampaignIdAndKeys(LocalDate start,
+                                                                          LocalDate end,
                                                                           Long campaignId,
                                                                           List<KeywordBidDto> keys){
         if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
-        LocalDate startDate  = LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
-        LocalDate endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
         List<Keyword> data =
-                keywordRepository.findKeywordsByDateAndCampaignIdAndKeys(startDate,endDate,campaignId,keys.stream().map(KeywordBidDto::getKeyword).toList());
+                keywordRepository.findKeywordsByDateAndCampaignIdAndKeys(start,end,campaignId,keys.stream().map(KeywordBidDto::getKeyword).toList());
         return addBids(summeryKeywordData(data),keys);
     }
 }
