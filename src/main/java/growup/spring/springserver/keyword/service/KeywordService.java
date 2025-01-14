@@ -8,16 +8,14 @@ import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.TypeChangeKeyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
+import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
@@ -27,36 +25,10 @@ public class KeywordService {
     private KeywordRepository keywordRepository;
     @Autowired
     private ExclusionKeywordService exclusionKeywordService;
-    public List<KeywordResponseDto> getKeywordsByCampaignId(String start, String end , Long campaignId){
-        LocalDate startDate;
-        LocalDate endDate;
-        try{
-            startDate = LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
-            endDate = LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
-            if(startDate.isAfter(endDate)) throw new DataFormatException();
-        }catch (DateTimeParseException | DataFormatException e){
-            throw new InvalidDateFormatException();
-        }
-        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(startDate,endDate,campaignId);
-        if(data.isEmpty()) throw new CampaignKeywordNotFoundException();
-        HashMap<String,KeywordResponseDto> map = new HashMap<>();
-        for(Keyword keyword : data){
-            if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().isEmpty()){
-                continue;
-            }
-            if(map.containsKey(keyword.getKeyKeyword())){
-                map.get(keyword.getKeyKeyword()).update(keyword);
-                continue;
-            }
-            map.put(keyword.getKeyKeyword(),TypeChangeKeyword.entityToResponseDto(keyword));
-        }
-        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
-        Set<String> exclusions = getExclusionKeywordToSet(campaignId);
-        for(String key : map.keySet()){
-            if(!exclusions.isEmpty() &&exclusions.contains(key)) map.get(key).setKeyExcludeFlag(true);
-            keywordResponseDtos.add(map.get(key));
-        }
-        return keywordResponseDtos;
+    public List<KeywordResponseDto> getKeywordsByCampaignId(LocalDate start, LocalDate end , Long campaignId){
+        if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
+        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(start,end,campaignId);
+        return checkKeyType(summeryKeywordData(data),getExclusionKeywordToSet(campaignId));
     }
 
     public Set<String> getExclusionKeywordToSet(Long campaignId){
@@ -69,5 +41,58 @@ public class KeywordService {
         return exclusionKeywordResponseDtos.stream()
                 .map(ExclusionKeywordResponseDto::getExclusionKeyword)
                 .collect(Collectors.toSet());
+    }
+
+    public boolean checkDateFormat(LocalDate start , LocalDate end){
+        try{
+            if(start.isAfter(end)) throw new DataFormatException();
+        }catch (DateTimeParseException | DataFormatException e){
+           return false;
+        }
+        return true;
+    }
+
+    public HashMap<String,KeywordResponseDto> summeryKeywordData(List<Keyword> data){
+        if(data.isEmpty()) throw new CampaignKeywordNotFoundException();
+        HashMap<String,KeywordResponseDto> map = new HashMap<>();
+        for(Keyword keyword : data){
+            if(keyword.getKeyKeyword() == null || keyword.getKeyKeyword().isEmpty()){
+                continue;
+            }
+            if(map.containsKey(keyword.getKeyKeyword())){
+                map.get(keyword.getKeyKeyword()).update(keyword);
+                continue;
+            }
+            map.put(keyword.getKeyKeyword(),TypeChangeKeyword.entityToResponseDto(keyword));
+        }
+        return map;
+    }
+
+    public List<KeywordResponseDto> checkKeyType(HashMap<String,KeywordResponseDto> map,Set<String> exclusions){
+        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
+        for(String key : map.keySet()){
+            if(!exclusions.isEmpty() &&exclusions.contains(key)) map.get(key).setKeyExcludeFlag(true);
+            keywordResponseDtos.add(map.get(key));
+        }
+        return keywordResponseDtos;
+    }
+
+    public List<KeywordResponseDto> addBids(HashMap<String,KeywordResponseDto> map,List<KeywordBidDto> keys){
+        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
+        for(KeywordBidDto dto : keys){
+            map.get(dto.getKeyword()).setBid(dto.getBid());
+            keywordResponseDtos.add(map.get(dto.getKeyword()));
+        }
+        return keywordResponseDtos;
+    }
+
+    public List<KeywordResponseDto> getKeywordsByDateAndCampaignIdAndKeys(LocalDate start,
+                                                                          LocalDate end,
+                                                                          Long campaignId,
+                                                                          List<KeywordBidDto> keys){
+        if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
+        List<Keyword> data =
+                keywordRepository.findKeywordsByDateAndCampaignIdAndKeys(start,end,campaignId,keys.stream().map(KeywordBidDto::getKeyword).toList());
+        return addBids(summeryKeywordData(data),keys);
     }
 }

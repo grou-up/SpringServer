@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.Mockito.doReturn;
@@ -48,15 +49,27 @@ public class KeywordControllerTest {
     }
 
     @Test
+    @DisplayName("getKeywordsAboutCampaign: Error 2.LocalDate 형식이 이상할 떄")
+    @WithAuthUser
+    void test1_2() throws Exception {
+        final String url = "/api/keyword/getKeywordsAboutCampaign?start=2024-12-01&end=20-11-01&campaignId=1";
+        final ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders
+                .get(url));
+        resultActions.andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("getKeywordsAboutCampaign: Success 1.정상 요청")
     @WithAuthUser
     void test2() throws Exception {
         //when
         final String url = "/api/keyword/getKeywordsAboutCampaign?start=2024-12-01&end=2024-12-31&campaignId=1";
+        final LocalDate start = LocalDate.of(2024,12,1);
+        final LocalDate end = LocalDate.of(2024,12,31);
         doReturn(List.of(
                 getKeywordResDto(),
                 getKeywordResDto(),
-                getKeywordResDto())).when(keywordService).getKeywordsByCampaignId("2024-12-01","2024-12-31",1L);
+                getKeywordResDto())).when(keywordService).getKeywordsByCampaignId(start,end,1L);
         //given
         final ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders
                 .get(url));

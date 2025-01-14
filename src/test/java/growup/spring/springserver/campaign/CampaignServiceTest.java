@@ -6,6 +6,7 @@ import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.exception.login.MemberNotFoundException;
+import growup.spring.springserver.global.exception.ErrorCode;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static growup.spring.springserver.keywordBid.service.KeywordBidServiceTest.getCampaign;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,6 +82,32 @@ class CampaignServiceTest {
         assertThat(result.get(0).getCampaignId()).isEqualTo(1L);
         assertThat(result.get(1).getCampaignId()).isEqualTo(2L);
         assertThat(result.get(2).getCampaignId()).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("getMyCampaign() : Error 캠패인 단건 조회 실패")
+    void test4_1(){
+        //given
+        doReturn(Optional.empty()).when(campaignRepository).findByCampaignIdANDEmail(1L,"test@test.com");
+        //when
+        CampaignNotFoundException result = assertThrows(CampaignNotFoundException.class,
+                ()-> campaignService.getMyCampaign(1L,"test@test.com"));
+        //then
+        assertThat(result.getErrorCode()).isEqualTo(ErrorCode.CAMPAIGN_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("getMyCampaign() : success 캠패인 단건 조회")
+    void test4(){
+        //given
+        doReturn(Optional.of(getCampaign())).when(campaignRepository).findByCampaignIdANDEmail(1L,"test@test.com");
+        //when
+        Campaign result = campaignService.getMyCampaign(1L,"test@test.com");
+        //then
+        assertThat(result.getCampaignId()).isEqualTo(1L);
+    }
+    public static Campaign getCampaign(){
+        return Campaign.builder().campaignId(1L).camCampaignName("testCamp").build();
     }
 
     public Member getMember(){

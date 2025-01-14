@@ -5,6 +5,7 @@ import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -67,6 +68,18 @@ public class CampaignRepoTest {
         final List<Campaign> data = campaignRepository.findAllByMember(member);
         //then
         assertThat(data.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("findByCampaignIdANDEmail() : Success. 캠패인 단건 조회")
+    void test3(){
+        //given
+        final Campaign input1 = newCampaign(member,"test1",1L);
+        campaignRepository.save(input1);
+        //whne
+        final Campaign result = campaignRepository.findByCampaignIdANDEmail(1L,member.getEmail()).get();
+        //then
+        assertThat(result.getCampaignId()).isEqualTo(1L);
     }
 
 

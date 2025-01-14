@@ -29,4 +29,10 @@ public class CampaignService {
         if(campaignList.isEmpty()) throw new CampaignNotFoundException();
         return campaignList.stream().map(TypeChangeCampaign::entityToResponseDto).toList();
     }
+
+    public Campaign getMyCampaign(Long campaignId,String email){
+        return campaignRepository.findByCampaignIdANDEmail(campaignId,email).orElseThrow(
+                CampaignNotFoundException::new
+        );
+    }
 }

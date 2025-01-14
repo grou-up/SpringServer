@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RequestMapping("/api/keyword")
@@ -21,8 +22,8 @@ public class KeywordController {
     private KeywordService keywordService;
 
     @GetMapping("/getKeywordsAboutCampaign")
-    public ResponseEntity<CommonResponse<?>> getKeywordAboutCampaign(@RequestParam("start") String start,
-                                                                     @RequestParam("end") String end,
+    public ResponseEntity<CommonResponse<?>> getKeywordAboutCampaign(@RequestParam("start") LocalDate start,
+                                                                     @RequestParam("end") LocalDate end,
                                                                      @RequestParam("campaignId") Long campaignId,
                                                                      @AuthenticationPrincipal UserDetails userDetails){
         log.info("start getKeywordAboutCampaign target "+ userDetails.getUsername());

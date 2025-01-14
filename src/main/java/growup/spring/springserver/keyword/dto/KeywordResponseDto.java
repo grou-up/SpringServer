@@ -1,5 +1,6 @@
 package growup.spring.springserver.keyword.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import growup.spring.springserver.keyword.domain.Keyword;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeywordResponseDto {
 
     private String keyKeyword;  // 키워드
@@ -30,11 +32,13 @@ public class KeywordResponseDto {
 
     private Double keyRoas ;  // ROAS
 
-    private LocalDate keyDate;  // 날짜
+    private String keyDate;  // 날짜
 
     private Boolean keyExcludeFlag = false;  // 제외여부
 
     private String keySearchType;// 검색 비검색
+
+    private Long bid;
 
     public void update(Keyword keyword){
         keyClicks += keyword.getKeyClicks();

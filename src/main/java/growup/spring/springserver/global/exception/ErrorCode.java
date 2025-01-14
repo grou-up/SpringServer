@@ -26,6 +26,9 @@ public enum ErrorCode {
     //Global
     INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST, "날짜 형식이 이상합니다."),
 
+
+    //KeywordBid
+    KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다.")
     ;
 
 
