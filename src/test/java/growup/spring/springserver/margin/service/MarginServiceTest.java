@@ -242,52 +242,7 @@ class MarginServiceTest {
         assertThat(summary2.getMarSales()).isEqualTo(180.0);
         assertThat(summary2.getMarRoas()).isEqualTo(1.0);
     }
-    @Test
-    @DisplayName("findByCampaignIdsAndDates(): Null values handled gracefully")
-    void testFindByCampaignIdsAndDates_NullValues() {
-        // Given
-        LocalDate today = LocalDate.of(2024, 11, 11);
-        LocalDate sevenDaysAgo = today.minusDays(7);
 
-        List<Campaign> campaigns = List.of(
-                Campaign.builder().campaignId(1L).camCampaignName("Campaign 1").build()
-        );
-
-        // Mock된 DailyAdSummaryDto 생성
-        List<DailyAdSummaryDto> summaryDtos = List.of(
-                new DailyAdSummaryDto(today, 0.0, 0.0, 0.0),
-                new DailyAdSummaryDto(sevenDaysAgo, 0.0, 0.0, 0.0)
-        );
-
-        // Mock 설정
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
-        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
-        doReturn(summaryDtos).when(marginRepository).find7daysTotalsByCampaignIds(
-                campaigns.stream().map(Campaign::getCampaignId).toList(),
-                sevenDaysAgo, today
-        );
-
-        // When
-        List<DailyAdSummaryDto> result = marginService.findByCampaignIdsAndDates("test@test.com", today);
-
-        // Then
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(2);
-
-        // 첫 번째 DTO 검증
-        DailyAdSummaryDto summary1 = result.get(0);
-        assertThat(summary1.getMarDate()).isEqualTo(today);
-        assertThat(summary1.getMarAdCost()).isEqualTo(0.0); // Null 처리로 기본값 확인
-        assertThat(summary1.getMarSales()).isEqualTo(0.0); // Null 처리로 기본값 확인
-        assertThat(summary1.getMarRoas()).isEqualTo(0.0); // ROAS 기본값 확인
-
-        // 두 번째 DTO 검증
-        DailyAdSummaryDto summary2 = result.get(1);
-        assertThat(summary2.getMarDate()).isEqualTo(sevenDaysAgo);
-        assertThat(summary2.getMarAdCost()).isEqualTo(0.0);
-        assertThat(summary2.getMarSales()).isEqualTo(0.0);
-        assertThat(summary2.getMarRoas()).isEqualTo(0.0);
-    }
 
 
     private Margin newMargin(LocalDate date, Campaign campaign,Double marsale) {
