@@ -1,13 +1,16 @@
 package growup.spring.springserver.campaignoptiondetails.service;
 
+import growup.spring.springserver.campaign.domain.Campaign;
+import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.campaignoptiondetails.domain.CampaignOptionDetails;
 import growup.spring.springserver.campaignoptiondetails.dto.CampaignOptionDetailsResponseDto;
 import growup.spring.springserver.campaignoptiondetails.repository.CampaignOptionDetailsRepository;
 import growup.spring.springserver.exception.InvalidDateFormatException;
-import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionDataNotFoundException;
-import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionNotFoundException;
+import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.execution.domain.Execution;
 import growup.spring.springserver.execution.repository.ExecutionRepository;
+import growup.spring.springserver.login.domain.Member;
+import growup.spring.springserver.login.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,8 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,6 +39,10 @@ class CampaignOptionDetailsServiceTest {
 
     @Mock
     private ExecutionRepository executionRepository;
+    @Mock
+    private MemberRepository memberRepository;
+    @Mock
+    private CampaignRepository campaignRepository;
 
     @InjectMocks
     private CampaignOptionDetailsService campaignOptionDetailsService;
@@ -47,14 +56,13 @@ class CampaignOptionDetailsServiceTest {
                 .findExecutionIdsByCampaignId(any());
 
         // When & Then
-        CampaignOptionNotFoundException exception = assertThrows(CampaignOptionNotFoundException.class,
-                () -> campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(
-                        LocalDate.of(2024, 12, 25),
-                        LocalDate.of(2024, 12, 25),
-                        1L));
+        List<CampaignOptionDetailsResponseDto> campaignDetailsByCampaignsIds = campaignOptionDetailsService.getCampaignDetailsByCampaignsIds(
+                LocalDate.of(2024, 12, 25),
+                LocalDate.of(2024, 12, 25),
+                1L);
 
         // Then
-        assertThat(exception.getMessage()).isEqualTo("해당 캠페인의 옵션이 없습니다.");
+        assertThat(campaignDetailsByCampaignsIds.size()).isZero();
     }
 
     @Test
@@ -92,10 +100,9 @@ class CampaignOptionDetailsServiceTest {
                 .findByExecutionIdsAndDateRange(anyList(), any(LocalDate.class), any(LocalDate.class));
 
         // then
-        final CampaignOptionDataNotFoundException result = assertThrows(CampaignOptionDataNotFoundException.class,
-                () -> campaignOptionDetailsService.getRawCampaignDetails(start, end, 1L));
+        List<CampaignOptionDetails> rawCampaignDetails = campaignOptionDetailsService.getRawCampaignDetails(start, end, 1L);
 
-        assertThat(result.getMessage()).isEqualTo("해당 옵션의 데이터가 존재하지 않습니다.");
+        assertThat(rawCampaignDetails.size()).isZero();
     }
 
     @Test
@@ -108,9 +115,9 @@ class CampaignOptionDetailsServiceTest {
         List<Long> executionIds = List.of(1L, 2L, 3L);
         doReturn(executionIds).when(executionRepository).findExecutionIdsByCampaignId(any());
 
-        Execution execution1 = newExecution(1L,1L, "Product A", "Category A");
-        Execution execution2 = newExecution(2L,2L, "Product B", "Category B");
-        Execution execution3 = newExecution(3L,3L, "Product C", "Category C");
+        Execution execution1 = newExecution(1L, 1L, "Product A", "Category A");
+        Execution execution2 = newExecution(2L, 2L, "Product B", "Category B");
+        Execution execution3 = newExecution(3L, 3L, "Product C", "Category C");
         System.out.println("execution3 = " + execution1.toString());
         // Mock 데이터: CampaignOptionDetails
         List<CampaignOptionDetails> campaignOptionDetailsList = List.of(
@@ -152,8 +159,8 @@ class CampaignOptionDetailsServiceTest {
         List<Long> executionIds = List.of(1L, 2L, 3L);
         doReturn(executionIds).when(executionRepository).findExecutionIdsByCampaignId(any());
 
-        Execution execution1 = newExecution(1L,1L, "Product A", "Category A");
-        Execution execution2 = newExecution(2L,2L, "Product B", "Category B");
+        Execution execution1 = newExecution(1L, 1L, "Product A", "Category A");
+        Execution execution2 = newExecution(2L, 2L, "Product B", "Category B");
 
         // Mock 데이터 생성
         List<CampaignOptionDetails> campaignOptionDetailsList = List.of(
@@ -175,6 +182,7 @@ class CampaignOptionDetailsServiceTest {
         assertThat(result).hasSize(2);
 
     }
+
 
     public Execution newExecution(long l, long executionid, String detail, String name) {
         return Execution.builder()
@@ -203,6 +211,12 @@ class CampaignOptionDetailsServiceTest {
                 .copSearchType(copsearchType)
                 .copSales(copSales)
                 .execution(execution)
+                .build();
+    }
+
+    public Member getMember() {
+        return Member.builder()
+                .email("test@test.com")
                 .build();
     }
 }
