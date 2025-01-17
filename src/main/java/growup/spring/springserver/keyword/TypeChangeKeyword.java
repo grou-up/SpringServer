@@ -17,6 +17,7 @@ public class TypeChangeKeyword {
                 .keyRoas((double) (Math.round(keyword.getKeyRoas()*100)/100))
                 .keyDate(keyword.getKeyDate().toString())
                 .keyExcludeFlag(false)
+                .keyBidFlag(false)
                 .keySearchType(keyword.getKeySearchType())
                 .keyTotalSales(keyword.getKeyTotalSales())
                 .build();

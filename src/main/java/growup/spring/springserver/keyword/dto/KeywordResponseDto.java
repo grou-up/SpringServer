@@ -34,7 +34,9 @@ public class KeywordResponseDto {
 
     private String keyDate;  // 날짜
 
-    private Boolean keyExcludeFlag = false;  // 제외여부
+    private Boolean keyExcludeFlag = false;// 제외여부
+
+    private Boolean keyBidFlag; // 수동입찰가 등록 여부
 
     private String keySearchType;// 검색 비검색
 
