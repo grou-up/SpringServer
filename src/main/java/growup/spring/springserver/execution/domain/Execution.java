@@ -22,6 +22,9 @@ public class Execution {
 
     private String exeProductName;
     private String exeDetailCategory;
+    private Long exeSalePrice;
+    private Long exeTotalPrice;
+    private Long exeCostPrice;
 
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
