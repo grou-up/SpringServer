@@ -2,12 +2,13 @@ package growup.spring.springserver.keywordBid.domain;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Builder
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class KeywordBid {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
