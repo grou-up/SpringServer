@@ -9,11 +9,12 @@ import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.TypeChangeKeyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
 import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
+import growup.spring.springserver.keywordBid.dto.KeywordBidResponseDto;
+import growup.spring.springserver.keywordBid.service.KeywordBidService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,10 +26,14 @@ public class KeywordService {
     private KeywordRepository keywordRepository;
     @Autowired
     private ExclusionKeywordService exclusionKeywordService;
+    @Autowired
+    private KeywordBidService keywordBidService;
     public List<KeywordResponseDto> getKeywordsByCampaignId(LocalDate start, LocalDate end , Long campaignId){
         if(!checkDateFormat(start,end)) throw new InvalidDateFormatException();
         List<Keyword> data = keywordRepository.findAllByDateANDCampaign(start,end,campaignId);
-        return checkKeyType(summeryKeywordData(data),getExclusionKeywordToSet(campaignId));
+        List<KeywordResponseDto> result = checkKeyTypeExclusion(summeryKeywordData(data),getExclusionKeywordToSet(campaignId));
+        checkKeyTypeKeywordBid(result,getBidKeywrodToSet(campaignId));
+        return result;
     }
 
     public Set<String> getExclusionKeywordToSet(Long campaignId){
@@ -68,14 +73,14 @@ public class KeywordService {
         return map;
     }
 
-    public List<KeywordResponseDto> checkKeyType(HashMap<String,KeywordResponseDto> map,Set<String> exclusions){
-        List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
-        for(String key : map.keySet()){
-            if(!exclusions.isEmpty() &&exclusions.contains(key)) map.get(key).setKeyExcludeFlag(true);
-            keywordResponseDtos.add(map.get(key));
+    public List<KeywordResponseDto> checkKeyTypeExclusion(HashMap<String,KeywordResponseDto> map, Set<String> exclusions){
+            List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
+            for(String key : map.keySet()){
+                if(!exclusions.isEmpty() &&exclusions.contains(key)) map.get(key).setKeyExcludeFlag(true);
+                keywordResponseDtos.add(map.get(key));
+            }
+            return keywordResponseDtos;
         }
-        return keywordResponseDtos;
-    }
 
     public List<KeywordResponseDto> addBids(HashMap<String,KeywordResponseDto> map,List<KeywordBidDto> keys){
         List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
@@ -94,5 +99,16 @@ public class KeywordService {
         List<Keyword> data =
                 keywordRepository.findKeywordsByDateAndCampaignIdAndKeys(start,end,campaignId,keys.stream().map(KeywordBidDto::getKeyword).toList());
         return addBids(summeryKeywordData(data),keys);
+    }
+
+    public Set<String > getBidKeywrodToSet(Long campaignId){
+        KeywordBidResponseDto keywordBidResponseDto = keywordBidService.getKeywordBids(campaignId);
+        return keywordBidResponseDto.getResponse().stream().map(KeywordBidDto::getKeyword).collect(Collectors.toSet());
+    }
+
+    public void checkKeyTypeKeywordBid (List<KeywordResponseDto> data, Set<String> bidKey){;
+        for(KeywordResponseDto key : data){
+            if(!bidKey.isEmpty() && bidKey.contains(key.getKeyKeyword())) key.setKeyBidFlag(true);
+        }
     }
 }
