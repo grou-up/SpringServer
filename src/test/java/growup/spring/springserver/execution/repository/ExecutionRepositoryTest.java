@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,8 +66,23 @@ class ExecutionRepositoryTest {
         List<Long> result = executionRepository.findExecutionIdsByCampaignId(999999L);
 
         // Then
-        assertThat(result.isEmpty()); // 내부 리스트가 비어 있는지 확인
+        assertThat(result).isEmpty();
     }
+    @Test
+    @DisplayName("findByCampaignId() : 특정 캠페인 ID 완 관련된 Execution 객체 변환 ")
+    void findByCampaignId() {
+        // given
+        execution1 = executionRepository.save(newExecution(campaign, 91130550615L, "블랙", "안경 케이스 - 블랙"));
+        execution2 = executionRepository.save(newExecution(campaign, 91130550622L, "화이트", "안경 케이스 - 화이트"));
+        execution3 = executionRepository.save(newExecution(campaign2, 91130550623L, "블루", "안경 케이스 - 블루"));
+        //when
+        List<Execution> result = executionRepository.findExecutionByCampaignId(campaign.getCampaignId());
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).isEqualTo(execution1);
+        assertThat(result.get(1)).isEqualTo(execution2);
+    }
+
 
 
     public Member newMember() {

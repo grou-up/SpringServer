@@ -12,4 +12,7 @@ public interface ExecutionRepository extends JpaRepository<Execution,Long> {
 
     @Query("SELECT e.id FROM Execution e WHERE e.campaign.campaignId = :campaignId")
     List<Long> findExecutionIdsByCampaignId(Long campaignId);
+
+    @Query("SELECT e FROM Execution e WHERE e.campaign.campaignId = :campaignId")
+    List<Execution> findExecutionByCampaignId(Long campaignId);
 }
