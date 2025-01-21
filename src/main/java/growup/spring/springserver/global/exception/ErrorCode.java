@@ -28,7 +28,10 @@ public enum ErrorCode {
 
 
     //KeywordBid
-    KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다.")
+    KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다."),
+
+    //
+    EXECUTION_REQUEST_ERROR(HttpStatus.BAD_REQUEST,"잘못된 요청값 입니다.")
     ;
 
 
