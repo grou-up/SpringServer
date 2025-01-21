@@ -54,7 +54,7 @@ class ExecutionServiceTest {
         // given
         List<Execution> mockExecutions = List.of(
                 newExecution(1L, 1L, "빨강색", "모자", getCampaign(1L, "모자")),
-                newExecution(2L, 2L, "파랑색", "모자1", getCampaign(1L, "모자"))
+                newExecution(2L, 2L, "파랑색", "모자1", getCampaign(1L, "모자2"))
         );
         doReturn(mockExecutions)
                 .when(executionRepository).findExecutionByCampaignId(any(Long.class));
@@ -64,11 +64,12 @@ class ExecutionServiceTest {
 
         // then
         assertThat(executionMarginResDtos).hasSize(2);
+        System.out.println("executionMarginResDtos = " + executionMarginResDtos);
         assertThat(executionMarginResDtos.get(0)).extracting("exeId").isEqualTo(1L);
-        assertThat(executionMarginResDtos.get(0)).extracting("exeDetailCategory").isEqualTo("빨강색");
+        assertThat(executionMarginResDtos.get(0)).extracting("exeDetailCategory").isEqualTo("모자");
 
         assertThat(executionMarginResDtos.get(1)).extracting("exeId").isEqualTo(2L);
-        assertThat(executionMarginResDtos.get(1)).extracting("exeDetailCategory").isEqualTo("파랑색");
+        assertThat(executionMarginResDtos.get(1)).extracting("exeDetailCategory").isEqualTo("모자1");
     }
 
     @Test

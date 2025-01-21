@@ -2,12 +2,20 @@ package growup.spring.springserver.execution.controller;
 
 import com.nimbusds.jose.shaded.gson.Gson;
 import growup.spring.springserver.annotation.WithAuthUser;
+import growup.spring.springserver.campaign.domain.Campaign;
+import growup.spring.springserver.campaign.service.CampaignService;
+import growup.spring.springserver.execution.dto.ExecutionDto;
 import growup.spring.springserver.execution.dto.ExecutionMarginResDto;
+import growup.spring.springserver.execution.dto.ExecutionRequestDtos;
+import growup.spring.springserver.execution.dto.ExecutionResponseDto;
 import growup.spring.springserver.execution.service.ExecutionService;
 import growup.spring.springserver.global.config.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,7 +29,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import static growup.spring.springserver.keywordBid.service.KeywordBidServiceTest.getCampaign;
+import static org.mockito.Mockito.doReturn;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,14 +46,16 @@ import static org.mockito.Mockito.when;
 @WebMvcTest(ExecutionController.class)
 class ExecutionControllerTest {
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
+    private Gson gson;
+    @MockBean
+    private ExecutionService executionService;
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
     @MockBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
     @MockBean
-    private ExecutionService executionService;
-
+    private CampaignService campaignService;
 
     @WithAuthUser
     @Test
@@ -51,12 +68,14 @@ class ExecutionControllerTest {
                 .get(url));
         result.andExpect(status().isBadRequest());
     }
+
     @WithAuthUser
     @Test
     @DisplayName("getMyExecutionData() : SuccessCase 1. 정상 호출")
     void getMyExecutionData_Success() throws Exception {
+        gson = new Gson();
+
         final String url = "/api/execution/getMyExecutionData?campaignId=1";
-        Gson gson = new Gson();
         // Mock data
         List<ExecutionMarginResDto> mockData = List.of(
                 ExecutionMarginResDto.builder()
@@ -96,5 +115,97 @@ class ExecutionControllerTest {
                 .andExpect(jsonPath("$.data[1].exeSalePrice").value(20000L))
                 .andExpect(jsonPath("$.data[1].exeTotalPrice").value(25000L))
                 .andExpect(jsonPath("$.data[1].exeCostPrice").value(10000L));
+    }
+
+    private static Stream<Arguments> incorrectBodies() {
+        return Stream.of(
+                Arguments.of(ExecutionRequestDtos.builder()
+                        .campaignId(1L)
+                        .data(List.of())
+                        .build()
+                ),
+                Arguments.of(ExecutionRequestDtos.builder()
+                        .campaignId(null)
+                        .data(List.of(ExecutionDto.builder().build()))
+                        .build())
+        );
+    }
+
+    @WithAuthUser
+    @DisplayName("updateMyExecutionData() Fail Case1. body 데이터 누락 ")
+    @ParameterizedTest
+    @MethodSource("incorrectBodies")
+    void updateMyExecutionData_Failcase1(ExecutionRequestDtos body) throws Exception {
+        gson = new Gson();
+        final String url = "/api/execution/update";
+        final ResultActions result = mockMvc.perform(patch(url)
+                .content(gson.toJson(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()));
+        result.andExpectAll(
+                status().isBadRequest()
+        );
+    }
+
+    @WithAuthUser
+    @DisplayName("updateMyExecutionData() Success Case1. 성공")
+    @Test
+    void updateMyExecutionData_SuccessCase1() throws Exception {
+        Gson gson = new Gson();
+        doReturn(getCampaign()).when(campaignService).getMyCampaign(any(Long.class),any(String.class));
+
+        doReturn(
+                getExecutionResponseDto(2, 2)
+        ).when(executionService)
+                .updateExecutions(any(ExecutionRequestDtos.class), any(Campaign.class));
+
+        final String url = "/api/execution/update";
+        final ExecutionRequestDtos body =
+                getExecutionRequestDtos(1L,
+                        List.of(getExecutionDto(1L, 1L, 1L, 1L, 1.1, 1.1),
+                                getExecutionDto(2L, 1L, 1L, 1L, 1.1, 1.1)));
+
+        final ResultActions result = mockMvc.perform(patch(url)
+                .content(gson.toJson(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()));
+
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("data.requestNumber").value("2"),
+                jsonPath("data.responseNumber").value("2")
+                );
+    }
+
+    public ExecutionRequestDtos getExecutionRequestDtos(Long CampaignId, List<ExecutionDto> list) {
+        return ExecutionRequestDtos.builder()
+                .campaignId(CampaignId)
+                .data(list)
+                .build();
+    }
+    public ExecutionDto getExecutionDto(Long executionId,
+                                        Long exeSalePrice,
+                                        Long exeTotalPrice,
+                                        Long exeCostPrice,
+                                        Double exePerPiece,
+                                        Double exeZeroRoas) {
+        return ExecutionDto.builder()
+                .executionId(executionId)
+                .exeSalePrice(exeSalePrice)
+                .exeTotalPrice(exeTotalPrice)
+                .exeCostPrice(exeCostPrice)
+                .exePerPiece(exePerPiece)
+                .exeZeroRoas(exeZeroRoas)
+                .build();
+    }
+
+    public ExecutionResponseDto getExecutionResponseDto(int reqeustNum, int responseNum) {
+        return ExecutionResponseDto.builder()
+                .requestNumber(reqeustNum)
+                .responseNumber(responseNum)
+                .build();
+    }
+    public static Campaign getCampaign(){
+        return Campaign.builder().campaignId(1L).camCampaignName("testCamp").build();
     }
 }
