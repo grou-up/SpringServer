@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,11 +94,13 @@ class ExecutionRepositoryTest {
         execution3 = executionRepository.save(newExecution(campaign, 91130550623L, "블루", "안경 케이스 - 블루"));
         execution3 = executionRepository.save(newExecution(campaign2, 91130550623L, "블루", "안경 케이스 - 블루"));
         // when
-        Execution result = executionRepository.findByCampaign_CampaignIdAndExeId(campaign.getCampaignId(), 91130550615L);
+
+        Optional<Execution> result = executionRepository.findByCampaign_CampaignIdAndExeId(campaign.getCampaignId(), 91130550615L);
         //then
-        assertThat(result).isNotNull();
-        assertThat(result.getCampaign()).isEqualTo(campaign);
-        assertThat(result.getExeId()).isEqualTo(91130550615L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getCampaign()).isEqualTo(campaign);
+        assertThat(result.get().getExeId()).isEqualTo(91130550615L);
     }
 
 
