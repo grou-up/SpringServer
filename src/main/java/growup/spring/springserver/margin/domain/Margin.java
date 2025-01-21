@@ -29,8 +29,8 @@ public class Margin {
     // 계산필요
     private Long marAdMargin;  // 광고 머진 계산필요
     private Double marNetProfit;  // 순이익
-    private Double marPerPiece; //  1개당 마진
-    private Double marZeroRoas; // 제로 Roas
+//    private Double marPerPiece; //  1개당 마진
+//    private Double marZeroRoas; // 제로 Roas
 
     // 입력 받아야 함
     private Double marTargetEfficiency;  // 목표 효율성

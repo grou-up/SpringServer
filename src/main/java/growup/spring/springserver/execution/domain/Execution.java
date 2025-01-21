@@ -25,8 +25,17 @@ public class Execution {
     private Long exeSalePrice;
     private Long exeTotalPrice;
     private Long exeCostPrice;
-
+    private Double exePerPiece; //  1개당 마진
+    private Double exeZeroRoas; // 제로 Roas
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
     private Campaign campaign;
+
+    public void update(Long exeSalePrice, Long exeTotalPrice, Long exeCostPrice, Double exePerPiece, Double exeZeroRoas) {
+        this.exeSalePrice =exeSalePrice;
+        this.exeTotalPrice = exeTotalPrice;
+        this.exeCostPrice = exeCostPrice;
+        this.exePerPiece = exePerPiece;
+        this.exeZeroRoas = exeZeroRoas;
+    }
 }
