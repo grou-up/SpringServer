@@ -3,6 +3,8 @@ package growup.spring.springserver.keyword;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.domain.Keyword;
 
+import java.util.HashMap;
+
 public class TypeChangeKeyword {
     public static KeywordResponseDto entityToResponseDto(Keyword keyword){
         return KeywordResponseDto.builder()
@@ -18,6 +20,7 @@ public class TypeChangeKeyword {
                 .keyDate(keyword.getKeyDate().toString())
                 .keyExcludeFlag(false)
                 .keyBidFlag(false)
+                .keySalesOptions(keyword.getKeyProductSales())
                 .keySearchType(keyword.getKeySearchType())
                 .keyTotalSales(keyword.getKeyTotalSales())
                 .build();

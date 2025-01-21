@@ -7,6 +7,7 @@ public class TypeChangeCampaign {
     public static CampaignResponseDto entityToResponseDto(Campaign c){
         return CampaignResponseDto.builder()
                 .campaignId(c.getCampaignId())
+                .camAdType(c.getCamAdType())
                 .title(c.getCamCampaignName())
                 .build();
     }
