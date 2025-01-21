@@ -296,7 +296,7 @@ public class KeywordServiceTest {
     }
 
     @Test
-    @DisplayName("checkKeyTypeKeywordBid() : error 1.")
+    @DisplayName("checkKeyTypeKeywordBid() : Success")
     void test9_1(){
         //when
         List<KeywordResponseDto> list = List.of(KeywordResponseDto.builder().keyKeyword("k1").keyBidFlag(false).build(),
@@ -310,6 +310,41 @@ public class KeywordServiceTest {
         //then
         assertThat(list.get(1).getKeyBidFlag()).isEqualTo(true);
         assertThat(list.get(2).getKeyBidFlag()).isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("summeryKeySalesOption() : error 1. map Is Empty")
+    void test10_1(){
+        //when
+        Map<Long,Long> originData = new HashMap<>();
+        Map<Long,Long> inputData = new HashMap<>();
+        inputData.put(1L,3L);
+        inputData.put(5L,3L);
+        //given
+        keywordService.summeryKeySalesOption(originData,inputData);
+        //then
+        assertThat(originData).hasSize(2);
+        assertThat(originData.get(1L)).isEqualTo(3L);
+        assertThat(originData.get(5L)).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("summeryKeySalesOption() : Success")
+    void test10_2(){
+        //when
+        Map<Long,Long> originData = new HashMap<>();
+        originData.put(1L,1L);
+        originData.put(2L,1L);
+        originData.put(3L,1L);
+        Map<Long,Long> inputData = new HashMap<>();
+        inputData.put(1L,3L);
+        inputData.put(5L,3L);
+        //given
+        keywordService.summeryKeySalesOption(originData,inputData);
+        //then
+        assertThat(originData).hasSize(4);
+        assertThat(originData.get(1L)).isEqualTo(4L);
+        assertThat(originData.get(5L)).isEqualTo(3L);
     }
 
     public ExclusionKeywordResponseDto getExclusionKeyword(String key,

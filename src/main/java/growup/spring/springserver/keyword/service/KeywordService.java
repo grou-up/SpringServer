@@ -65,6 +65,8 @@ public class KeywordService {
                 continue;
             }
             if(map.containsKey(keyword.getKeyKeyword())){
+                KeywordResponseDto dto = map.get(keyword.getKeyKeyword());
+                summeryKeySalesOption(dto.getKeySalesOptions(),keyword.getKeyProductSales());
                 map.get(keyword.getKeyKeyword()).update(keyword);
                 continue;
             }
@@ -73,6 +75,12 @@ public class KeywordService {
         return map;
     }
 
+    public void summeryKeySalesOption(Map<Long,Long> originData, Map<Long,Long> inputData){
+        if(inputData == null) return;
+        for(Long inputKey : inputData.keySet()){
+            originData.put(inputKey,originData.getOrDefault(inputKey,0L)+inputData.get(inputKey));
+        }
+    }
     public List<KeywordResponseDto> checkKeyTypeExclusion(HashMap<String,KeywordResponseDto> map, Set<String> exclusions){
             List<KeywordResponseDto> keywordResponseDtos = new ArrayList<>();
             for(String key : map.keySet()){
