@@ -2,12 +2,20 @@ package growup.spring.springserver.marginforcampaign.controller;
 
 import com.nimbusds.jose.shaded.gson.Gson;
 import growup.spring.springserver.annotation.WithAuthUser;
+import growup.spring.springserver.execution.dto.ExecutionDto;
+import growup.spring.springserver.execution.dto.ExecutionRequestDtos;
 import growup.spring.springserver.global.config.JwtTokenProvider;
 import growup.spring.springserver.marginforcampaign.dto.MarginForCampaignResDto;
+import growup.spring.springserver.marginforcampaign.dto.MfcDto;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
+import growup.spring.springserver.marginforcampaign.dto.MfcValidationResponseDto;
 import growup.spring.springserver.marginforcampaign.service.MarginForCampaignService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,10 +26,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -82,6 +96,67 @@ class MarginForCampaignControllerTest {
                 .andExpect(jsonPath("$.data[1].mfcTotalPrice").value(3L));
 
     }
+
+    private static Stream<Arguments> incorrectBodies() {
+        return Stream.of(
+                Arguments.of(MfcRequestDtos.builder()
+                        .campaignId(1L)
+                        .data(List.of())
+                        .build()
+                ),
+                Arguments.of(MfcRequestDtos.builder()
+                        .campaignId(null)
+                        .data(List.of(MfcDto.builder().build()))
+                        .build())
+        );
+    }
+
+
+    @WithAuthUser
+    @DisplayName("updateMyExecutionData() Fail Case1. body 데이터 누락 ")
+    @ParameterizedTest
+    @MethodSource("incorrectBodies")
+    void updateExecutionAboutCampaign_failCase1(MfcRequestDtos body) throws Exception {
+        gson = new Gson();
+        final String url = "/api/marginforcam/updateExecutionAboutCampaign";
+        final ResultActions result = mockMvc.perform(patch(url)
+                .content(gson.toJson(body))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()));
+        result.andExpectAll(
+                status().isBadRequest()
+        );
+    }
+
+    @WithAuthUser
+    @DisplayName("updateMyExecutionData() Success Case1")
+    @Test
+    void updateExecutionAboutCampaign_SuccessCase1() throws Exception {
+        gson = new Gson();
+        final String url = "/api/marginforcam/updateExecutionAboutCampaign";
+
+        // Argument Matchers는 stub 메서드에서만 사용해야 합니다.
+        doReturn(getMfcValidationResponseDto(2, 2, new ArrayList<>()))
+                .when(marginForCampaignService)
+                .searchMarginForCampaignProductName(any(String.class), any(MfcRequestDtos.class));
+
+        final MfcRequestDtos requestBody = getRequestDtos(1L, List.of(
+                getMfcDto("빨강색", 1L, 2L, 1.1, 1.1),
+                getMfcDto("파랑색", 2L, 2L, 1.1, 1.1)
+        ));
+
+        final ResultActions result = mockMvc.perform(patch(url)
+                .content(gson.toJson(requestBody))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()));
+
+        result.andExpectAll(
+                status().isOk(),
+                jsonPath("data.requestNumber").value("2"),
+                jsonPath("data.responseNumber").value("2")
+        );
+    }
+
     private MarginForCampaignResDto createMarginForCampaignResDto(String productName, Long totalPrice) {
         return MarginForCampaignResDto.builder()
                 .mfcProductName(productName)
@@ -89,6 +164,29 @@ class MarginForCampaignControllerTest {
                 .mfcCostPrice(7000L)
                 .mfcPerPiece(3.0)
                 .mfcZeroRoas(1.2)
+                .build();
+    }
+    public MfcRequestDtos getRequestDtos(Long id, List<MfcDto> data) {
+        return MfcRequestDtos.builder()
+                .campaignId(id)
+                .data(data)
+                .build();
+    }
+    public MfcDto getMfcDto(String mfcProductName,Long mfcTotalPrice,Long mfcCostPrice,Double mfcPerPiece,Double mfcZeroRoas) {
+        return MfcDto.builder()
+                .mfcProductName(mfcProductName)
+                .mfcTotalPrice(mfcTotalPrice)
+                .mfcCostPrice(mfcCostPrice)
+                .mfcPerPiece(mfcPerPiece)
+                .mfcZeroRoas(mfcZeroRoas)
+                .build();
+    }
+
+    private MfcValidationResponseDto getMfcValidationResponseDto(int request, int response, List<String> ProductName) {
+        return MfcValidationResponseDto.builder()
+                .requestNumber(request)
+                .responseNumber(response)
+                .failedProductNames(ProductName)
                 .build();
     }
 }

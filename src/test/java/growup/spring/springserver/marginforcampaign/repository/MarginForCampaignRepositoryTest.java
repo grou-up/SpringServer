@@ -2,6 +2,8 @@ package growup.spring.springserver.marginforcampaign.repository;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.login.domain.Member;
+import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +21,8 @@ public class MarginForCampaignRepositoryTest {
     private CampaignRepository campaignRepository;
     @Autowired
     private MarginForCampaignRepository marginForCampaignRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
     @DisplayName("save success")
     @Test
@@ -49,8 +54,54 @@ public class MarginForCampaignRepositoryTest {
         }
     }
 
+    @DisplayName("findByEmailAndMfcProductName: 조회, 수정 한 번에 해당 캠페인의 중복이름은 가능 (수정해야하니까) ")
+    @Test
+    void test3() {
+        // given
+        Member member = getMember();
+        memberRepository.save(member);
+
+        Campaign campaign = campaignRepository.save(getCampaign("송보석",1L,member));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자2", 1L, 1L, 1.1, 1.1));
+
+        Campaign campaign2 = campaignRepository.save(getCampaign("송보석1",2L,member));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자3", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자4", 1L, 1L, 1.1, 1.1));
+
+        Campaign campaign3 = campaignRepository.save(getCampaign("송보석2",3L,member));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자5", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자6", 1L, 1L, 1.1, 1.1));
+
+        Campaign campaign4 = campaignRepository.save(getCampaign("송보석3",4L,member));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자7", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자8", 1L, 1L, 1.1, 1.1));
+
+        // 3 캠페인은 5,6 가지고 있음 8 다른곳에 있음 존재해야함
+        Optional<MarginForCampaign> emptyResult= marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign("fa7271@naver.com", "모자8",3L);
+        // 내꺼니까 상관없음
+        Optional<MarginForCampaign> notEmptyResult = marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign("fa7271@naver.com", "모자",1L);
+
+
+        //then
+        assertThat(emptyResult).isPresent(); // 다른 캠페인에 있으니 중복 생성 불가능
+        assertThat(notEmptyResult).isEmpty(); // 현재 캠페인에  있는거니깐 패스해야함(수정)
+    }
+
+    public Member getMember() {
+        return Member.builder()
+                .email("fa7271@naver.com")
+                .build();
+    }
     public Campaign getCampaign(String name, Long id) {
         return Campaign.builder()
+                .campaignId(id)
+                .camCampaignName(name)
+                .build();
+    }
+    public Campaign getCampaign(String name, Long id, Member member) {
+        return Campaign.builder()
+                .member(member)
                 .campaignId(id)
                 .camCampaignName(name)
                 .build();

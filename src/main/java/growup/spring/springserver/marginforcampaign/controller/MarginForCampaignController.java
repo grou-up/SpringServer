@@ -1,16 +1,17 @@
 package growup.spring.springserver.marginforcampaign.controller;
 
-import growup.spring.springserver.execution.dto.ExecutionMarginResDto;
 import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.marginforcampaign.dto.MarginForCampaignResDto;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
+import growup.spring.springserver.marginforcampaign.dto.MfcValidationResponseDto;
 import growup.spring.springserver.marginforcampaign.service.MarginForCampaignService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,6 +28,18 @@ public class MarginForCampaignController {
         return new ResponseEntity<>(CommonResponse
                 .<List<MarginForCampaignResDto>>builder("success : getExecutionAboutCampaign")
                 .data(marginForCampaignResDtos)
+                .build(), HttpStatus.OK);
+    }
+
+    @PatchMapping("/updateExecutionAboutCampaign")
+    public ResponseEntity<CommonResponse<MfcValidationResponseDto>> updateExecutionAboutCampaign(@Valid @RequestBody MfcRequestDtos mfcRequestDtos,
+                                                                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        MfcValidationResponseDto mfcValidationResponseDto = marginForCampaignService.searchMarginForCampaignProductName(email, mfcRequestDtos);
+
+        return new ResponseEntity<>(CommonResponse
+                .<MfcValidationResponseDto>builder("success : getExecutionAboutCampaign")
+                .data(mfcValidationResponseDto)
                 .build(), HttpStatus.OK);
     }
 }
