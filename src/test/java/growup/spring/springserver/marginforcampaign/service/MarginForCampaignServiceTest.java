@@ -2,6 +2,7 @@ package growup.spring.springserver.marginforcampaign.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import growup.spring.springserver.marginforcampaign.dto.MarginForCampaignResDto;
@@ -20,7 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -144,6 +147,31 @@ class MarginForCampaignServiceTest {
         assertThat(response.getResponseNumber()).isEqualTo(1); // 성공 카운트는 1이어야 함
 
     }
+    @DisplayName("deleteMarginForCampaign() : FailCase - 없는 ID")
+    @Test
+    void deleteMarginForCampaign_FailCase_NotFound() {
+        // Arrange
+        Long nonExistingId = 99L; // 존재하지 않는 ID
+        when(marginForCampaignRepository.existsById(nonExistingId)).thenReturn(false); // ID가 존재하지 않는다고 설정
+
+        // Act & Assert
+        assertThatThrownBy(() -> marginForCampaignService.deleteMarginForCampaign(nonExistingId))
+                .isInstanceOf(MarginForCampaignIdNotFoundException.class) // 예외가 발생하는지 확인
+                .hasMessageContaining("없는 ID 입니다."); // 메시지 확인
+    }
+
+    @DisplayName("deleteMarginForCampaign() : Success")
+    @Test
+    void deleteMarginForCampaign_Success() {
+        Long existingId = 1L;
+        when(marginForCampaignRepository.existsById(existingId)).thenReturn(true); // ID가 존재한다고 설정
+
+        marginForCampaignService.deleteMarginForCampaign(existingId); // 서비스 메소드 호출
+
+        verify(marginForCampaignRepository, times(1)).deleteById(existingId); // deleteById 메소드가 한 번 호출되었는지 확인
+
+    }
+
 
     public Member getMember() {
         return Member.builder()

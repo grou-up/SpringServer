@@ -13,6 +13,7 @@ public class TypeChangeMarginForCampaign {
 
     public static MarginForCampaignResDto EntityToDto(MarginForCampaign data) {
         return MarginForCampaignResDto.builder()
+                .id(data.getId())
                 .mfcProductName(data.getMfcProductName())
                 .mfcSalePrice(data.getMfcSalePrice())
                 .mfcTotalPrice(data.getMfcTotalPrice())

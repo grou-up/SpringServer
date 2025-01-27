@@ -1,5 +1,6 @@
 package growup.spring.springserver.marginforcampaign.controller;
 
+import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.marginforcampaign.dto.MarginForCampaignResDto;
 import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
@@ -41,5 +42,21 @@ public class MarginForCampaignController {
                 .<MfcValidationResponseDto>builder("success : getExecutionAboutCampaign")
                 .data(mfcValidationResponseDto)
                 .build(), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/deleteExecutionAboutCampaign")
+    public ResponseEntity<CommonResponse<Void>> deleteExecutionAboutCampaign(@RequestParam Long id) {
+        try {
+            marginForCampaignService.deleteMarginForCampaign(id);
+            return ResponseEntity.ok(CommonResponse
+                    .<Void>builder("success : delete")
+                    .data(null) // 데이터가 없으므로 null
+                    .build());
+        } catch (MarginForCampaignIdNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonResponse
+                    .<Void>builder(e.getMessage())
+                    .data(null) // 데이터가 없으므로 null
+                    .build());
+        }
     }
 }

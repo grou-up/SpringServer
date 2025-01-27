@@ -2,6 +2,7 @@ package growup.spring.springserver.marginforcampaign.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignProductNameNotFoundException;
 import growup.spring.springserver.marginforcampaign.TypeChangeMarginForCampaign;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
@@ -39,6 +40,14 @@ public class MarginForCampaignService {
         Campaign campaign = getCampaign(requestDtos.getCampaignId());
 
         return validateProducts(requestDtos.getData(), email, campaign);
+    }
+
+    public void deleteMarginForCampaign(Long id) {
+        if (!marginForCampaignRepository.existsById(id)) {
+            throw new MarginForCampaignIdNotFoundException();
+        }
+        // 존재할 경우 삭제
+        marginForCampaignRepository.deleteById(id);
     }
 
     private MfcValidationResponseDto validateProducts(List<MfcDto> datas, String email, Campaign campaign) {

@@ -88,6 +88,22 @@ public class MarginForCampaignRepositoryTest {
         assertThat(notEmptyResult).isEmpty(); // 현재 캠페인에  있는거니깐 패스해야함(수정)
     }
 
+    @DisplayName("deleteById() : Success")
+    @Test
+    void test4() {
+        Member member = getMember();
+        memberRepository.save(member);
+
+        Campaign campaign = campaignRepository.save(getCampaign("송보석",1L,member));
+        MarginForCampaign build = MarginForCampaign.builder().id(1L).build();
+        marginForCampaignRepository.save(build);
+
+
+        marginForCampaignRepository.deleteById(1L);
+
+        assertThat(marginForCampaignRepository.existsById(1L)).isFalse();
+    }
+
     public Member getMember() {
         return Member.builder()
                 .email("fa7271@naver.com")

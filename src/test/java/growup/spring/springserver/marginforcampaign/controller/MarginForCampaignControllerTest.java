@@ -2,8 +2,7 @@ package growup.spring.springserver.marginforcampaign.controller;
 
 import com.nimbusds.jose.shaded.gson.Gson;
 import growup.spring.springserver.annotation.WithAuthUser;
-import growup.spring.springserver.execution.dto.ExecutionDto;
-import growup.spring.springserver.execution.dto.ExecutionRequestDtos;
+import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.global.config.JwtTokenProvider;
 import growup.spring.springserver.marginforcampaign.dto.MarginForCampaignResDto;
 import growup.spring.springserver.marginforcampaign.dto.MfcDto;
@@ -31,9 +30,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -155,6 +152,41 @@ class MarginForCampaignControllerTest {
                 jsonPath("data.requestNumber").value("2"),
                 jsonPath("data.responseNumber").value("2")
         );
+    }
+
+    @WithAuthUser
+    @DisplayName("deleteExecutionAboutCampaign() Success Case")
+    @Test
+    void deleteExecutionAboutCampaign_Success() throws Exception {
+        Long campaignIdToDelete = 1L;
+        String url = "/api/marginforcam/deleteExecutionAboutCampaign?id=" + campaignIdToDelete;
+
+        // void 로 건 메소드 when 걸고 싶을때
+        doNothing().when(marginForCampaignService).deleteMarginForCampaign(campaignIdToDelete);
+
+        ResultActions result = mockMvc.perform(MockMvcRequestBuilders
+                .delete(url)
+                .with(csrf()));
+
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("success : delete"));
+    }
+
+    @WithAuthUser
+    @DisplayName("deleteExecutionAboutCampaign() Fail Case - ID Not Found")
+    @Test
+    void deleteExecutionAboutCampaign_Fail_IdNotFound() throws Exception {
+        Long campaignIdToDelete = 1L;
+        String url = "/api/marginforcam/deleteExecutionAboutCampaign?id=" + campaignIdToDelete;
+
+        doThrow(new MarginForCampaignIdNotFoundException()).when(marginForCampaignService).deleteMarginForCampaign(campaignIdToDelete);
+
+        ResultActions result = mockMvc.perform(MockMvcRequestBuilders
+                .delete(url)
+                .with(csrf()));
+
+        result.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("없는 ID 입니다."));
     }
 
     private MarginForCampaignResDto createMarginForCampaignResDto(String productName, Long totalPrice) {
