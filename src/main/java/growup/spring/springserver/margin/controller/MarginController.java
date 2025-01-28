@@ -2,11 +2,11 @@ package growup.spring.springserver.margin.controller;
 
 import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.service.MarginService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -47,5 +47,19 @@ public class MarginController {
                 .data(byCampaignIdsAndDates)
                 .build(), HttpStatus.OK
         );
+    }
+
+    @GetMapping("/getMargin")
+    public ResponseEntity<CommonResponse<List<MarginResponseDto>>> getMargin(@RequestParam("startDate") LocalDate start,
+                                                                             @RequestParam("endDate") LocalDate end,
+                                                                             @RequestParam("campaignId") Long campaignId,
+                                                                             @AuthenticationPrincipal UserDetails userDetails) {
+
+        List<MarginResponseDto> marginResponseDtos = marginService.getALLMargin(start, end, campaignId, userDetails.getUsername());
+
+        return new ResponseEntity<>(CommonResponse
+                .<List<MarginResponseDto>>builder("success :getMargin ")
+                .data(marginResponseDtos)
+                .build(), HttpStatus.OK);
     }
 }

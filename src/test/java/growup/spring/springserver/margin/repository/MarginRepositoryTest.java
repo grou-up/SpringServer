@@ -115,6 +115,19 @@ class MarginRepositoryTest {
         assertThat(margins).isEmpty();
     }
 
+    @Test
+    @DisplayName("findByCampaignIdAndDates() : SuccessCase ")
+    void test4() {
+
+        LocalDate start = LocalDate.of(2024, 11, 10);
+        LocalDate end = LocalDate.of(2024, 11, 10);
+
+        List<Margin> margins = marginRepository.findByCampaignIdAndDates(campaign1.getCampaignId(), start, end);
+
+        assertThat(margins).hasSize(1);
+
+    }
+
     private Member newMember() {
         return Member.builder().email("test@test.com").build();
     }

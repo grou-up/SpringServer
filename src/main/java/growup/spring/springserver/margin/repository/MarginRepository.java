@@ -40,4 +40,8 @@ public interface MarginRepository extends JpaRepository<Margin, Long> {
 //광고비 500원 판매된게 200원
 //    = marsales / maradcost
 
+    @Query("SELECT m FROM Margin m WHERE m.campaign.campaignId = :campaignId AND m.marDate BETWEEN :startDate AND :endDate")
+    List<Margin> findByCampaignIdAndDates(@Param("campaignId") Long campaignId,
+                                          @Param("startDate") LocalDate startDate,
+                                          @Param("endDate") LocalDate endDate);
 }

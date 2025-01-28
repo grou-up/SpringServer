@@ -4,15 +4,22 @@ import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.exception.login.MemberNotFoundException;
+import growup.spring.springserver.exception.netsales.NetSalesNotFoundProductName;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.TypeChangeMargin;
 import growup.spring.springserver.margin.domain.Margin;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.repository.MarginRepository;
+import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
+import growup.spring.springserver.marginforcampaign.repository.MarginForCampaignRepository;
+import growup.spring.springserver.netsales.domain.NetSales;
+import growup.spring.springserver.netsales.repository.NetRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -28,7 +35,15 @@ public class MarginService {
     private final MarginRepository marginRepository;
     private final MemberRepository memberRepository;
     private final CampaignRepository campaignRepository;
+    private final MarginForCampaignRepository marginForCampaignRepository;
+    private final NetRepository netRepository;
+//    private final OAuth2ClientRegistrationRepositoryConfiguration oAuth2ClientRegistrationRepositoryConfiguration;
 
+    /*
+     * TODO
+     *  getCampaignAllSales()
+     *  대시보드 3사분면
+     * */
     public List<MarginSummaryResponseDto> getCampaignAllSales(String email, LocalDate targetDate) {
         LocalDate difTargetDate = targetDate.minusDays(1);
 
@@ -52,6 +67,11 @@ public class MarginService {
         return summaries;
     }
 
+    /*
+     * TODO
+     *  getDailyAdSummary()
+     *  1, 2 사분면
+     * */
     public List<DailyAdSummaryDto> findByCampaignIdsAndDates(String email, LocalDate targetDate) {
         LocalDate difTargetDate = targetDate.minusDays(7);
 
@@ -86,5 +106,79 @@ public class MarginService {
                 .filter(m -> m.getMarDate().equals(date))
                 .findFirst()
                 .orElse(TypeChangeMargin.createDefaultMargin(campaign, date));
+    }
+
+    /*
+     * TODO
+     *  1. startDate ~ endDate 까지 마진데이터 다 가져온다.
+     *  2.1 startDate 부터 하루씩 늘리면서 계산해서 넣는 것들이 있는 지 확인한다.
+     *  2.2 만약에 비어있는 경우, NetSales 호출 후 계산해서 다시 집어넣어준다.
+     * */
+    @Transactional
+    public List<MarginResponseDto> getALLMargin(LocalDate start, LocalDate end, Long campaignId, String email) {
+
+        // 1번
+        List<Margin> margins = byCampaignIdAndDates(start, end, campaignId);
+
+        List<Margin> calculateMargin = calculateMargin(margins, campaignId, email);
+
+        return TypeChangeMargin.getMarginDto(calculateMargin,campaignId);
+
+    }
+
+
+
+    private List<Margin> calculateMargin(List<Margin> margins, Long campaignId, String email) {
+        // 보여줄 데이터
+        List<Margin> datas = new ArrayList<>();
+        for (Margin margin : margins) {
+            // marAdMargin과 marNetProfit이 모두 0일 때 netSales를 호출
+            // A 에 대해서 마진이 없음 => A에 대해서 업데이트 쳐야함
+            if (margin.getMarAdMargin() == 0 && margin.getMarNetProfit() == 0.0) {
+                Margin updateMargin = callNetSales(margin, campaignId, margin.getMarDate(), email);
+                datas.add(updateMargin);
+            }
+            else {
+                datas.add(margin);
+            }
+        }
+        return datas;
+    }
+
+    // NetSales 에서 가져와야함, 옵션명이랑 연결되어있음
+    private Margin callNetSales(Margin margin, Long campaignId, LocalDate date, String email) {
+        // 해당 캠페인의 내가 추가한 모든 옵션들 가져옴
+        List<MarginForCampaign> marginForCampaigns = marginForCampaignRepository.MarginForCampaignByCampaignId(campaignId);
+
+        long actualSales = 0; // 순 판매 수
+        long adMargin = 0; // 광고 머진
+
+        // MarginForCampaign마다 netSales를 매칭해서 합산
+        for (MarginForCampaign data : marginForCampaigns) {
+            try {
+                NetSales netSalesList = checkNetSales(date, email, data.getMfcProductName());
+                // netSales가 존재하면 합산
+                actualSales += netSalesList.getNetSalesCount();
+                adMargin += netSalesList.getNetSalesCount() * data.getMfcPerPiece();
+            } catch (NetSalesNotFoundProductName e) {
+                continue;
+            }
+        }
+
+        margin.update(actualSales, adMargin);
+
+        return margin;
+    }
+
+
+    private List<Margin> byCampaignIdAndDates(LocalDate start, LocalDate end, Long campaignId) {
+
+        return marginRepository.findByCampaignIdAndDates(campaignId, start, end);
+    }
+
+    private NetSales checkNetSales(LocalDate date, String email, String productName) {
+        return netRepository.findByNetDateAndEmailAndNetProductName(date, email, productName).orElseThrow(
+                NetSalesNotFoundProductName::new
+        );
     }
 }
