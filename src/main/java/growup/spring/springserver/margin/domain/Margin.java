@@ -64,4 +64,9 @@ public class Margin {
         }
         this.marActualSales = actualSales; // 실제 판매수
     }
+
+    public void update(long adMargin) {
+        this.marAdMargin = adMargin;
+        this.marNetProfit = adMargin - (this.marAdCost * 1.1);
+    }
 }

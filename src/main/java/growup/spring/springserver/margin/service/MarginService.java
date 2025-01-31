@@ -14,6 +14,9 @@ import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.repository.MarginRepository;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
+import growup.spring.springserver.marginforcampaign.dto.MfcDto;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestWithDatesDto;
 import growup.spring.springserver.marginforcampaign.repository.MarginForCampaignRepository;
 import growup.spring.springserver.netsales.domain.NetSales;
 import growup.spring.springserver.netsales.repository.NetRepository;
@@ -25,6 +28,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -180,5 +184,49 @@ public class MarginService {
         return netRepository.findByNetDateAndEmailAndNetProductName(date, email, productName).orElseThrow(
                 NetSalesNotFoundProductName::new
         );
+    }
+
+//    기간 별 마진, 바꾸기
+    @Transactional
+    public void marginUpdatesByPeriod(MfcRequestWithDatesDto mfcRequestWithDatesDto, String email) {
+        LocalDate start = mfcRequestWithDatesDto.getStartDate();
+        LocalDate end = mfcRequestWithDatesDto.getEndDate();
+        Long campaignId = mfcRequestWithDatesDto.getCampaignId();
+
+        // 1. 기간별 마진 데이터 가져옴
+        List<Margin> margins = byCampaignIdAndDates(start, end, campaignId);
+
+        // 2. 변경된 옵션 이름 리스트 보석 ,재영 있음
+        Set<String> updatedProductNames = mfcRequestWithDatesDto.getData().stream()
+                .map(MfcDto::getMfcProductName)
+                .collect(Collectors.toSet());
+
+        // 3. 변경된 옵션 데이터를 Map으로 변환 (상품명 기준으로 빠르게 찾기 위해)
+        Map<String, MfcDto> updatedMarginsMap = mfcRequestWithDatesDto.getData().stream()
+                .collect(Collectors.toMap(MfcDto::getMfcProductName, mfc -> mfc));
+
+        List<MarginForCampaign> marginForCampaigns = marginForCampaignRepository.MarginForCampaignByCampaignId(campaignId);
+
+        for (Margin data : margins) {
+            long adMargin = 0; // 광고 머진
+            // 보석, 재영, 은아 있음
+            for (MarginForCampaign tempData : marginForCampaigns) {
+                try {
+                    // 해당 날짜 갯수 불러옴
+                    NetSales netSalesList = checkNetSales(data.getMarDate(), email, tempData.getMfcProductName());
+
+                    // 변경된 옵션 리스트일경우
+                    long perPieceMargin = updatedProductNames.contains(tempData.getMfcProductName())
+                            ? updatedMarginsMap.get(tempData.getMfcProductName()).getMfcPerPiece()
+                            : tempData.getMfcPerPiece();
+
+                    adMargin += netSalesList.getNetSalesCount() * perPieceMargin;
+                    System.out.println("tempData = " + tempData.getMfcProductName() +" : " + adMargin+" : " + netSalesList.getNetSalesCount()+" : " + perPieceMargin);
+                } catch (NetSalesNotFoundProductName e) {
+                    continue;
+                }
+            }
+            data.update(adMargin);
+        }
     }
 }

@@ -5,16 +5,16 @@ import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
 import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.service.MarginService;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
+import growup.spring.springserver.marginforcampaign.dto.MfcRequestWithDatesDto;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,7 +39,7 @@ public class MarginController {
 
     @GetMapping("/getDailyAdSummary")
     public ResponseEntity<CommonResponse<?>> getDailyAdSummary(@RequestParam("date") LocalDate date,
-                                                      @AuthenticationPrincipal UserDetails userDetails) {
+                                                               @AuthenticationPrincipal UserDetails userDetails) {
         List<DailyAdSummaryDto> byCampaignIdsAndDates = marginService.findByCampaignIdsAndDates(userDetails.getUsername(), date);
 
         return new ResponseEntity<>(CommonResponse
@@ -61,5 +61,18 @@ public class MarginController {
                 .<List<MarginResponseDto>>builder("success :getMargin ")
                 .data(marginResponseDtos)
                 .build(), HttpStatus.OK);
+    }
+
+    // Return 타입 뭘로 ?. 고민
+    @PatchMapping("marginUpdatesByPeriod")
+    public ResponseEntity<CommonResponse<String>> marginUpdatesByPeriod(@Valid @RequestBody MfcRequestWithDatesDto mfcRequestWithDatesDto,
+                                                                        @AuthenticationPrincipal UserDetails userDetails) {
+
+        marginService.marginUpdatesByPeriod(mfcRequestWithDatesDto, userDetails.getUsername());
+
+        return ResponseEntity.ok(CommonResponse
+                .<String>builder("success: marginUpdatesByPeriod")
+                .data("Margin update successful")  // 성공 메시지 반환
+                .build());
     }
 }
