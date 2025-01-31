@@ -2,6 +2,7 @@ package growup.spring.springserver.margin.repository;
 
 import growup.spring.springserver.margin.domain.Margin;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -44,4 +46,8 @@ public interface MarginRepository extends JpaRepository<Margin, Long> {
     List<Margin> findByCampaignIdAndDates(@Param("campaignId") Long campaignId,
                                           @Param("startDate") LocalDate startDate,
                                           @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT m from Margin m where m.campaign.campaignId = :campaignId AND m.marDate = :date")
+    Optional<Margin> findByCampaignIdAndDate(Long campaignId, LocalDate date);
+
 }

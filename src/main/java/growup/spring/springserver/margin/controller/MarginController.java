@@ -2,6 +2,7 @@ package growup.spring.springserver.margin.controller;
 
 import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.margin.dto.DailyMarginSummary;
 import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.service.MarginService;
@@ -74,5 +75,16 @@ public class MarginController {
                 .<String>builder("success: marginUpdatesByPeriod")
                 .data("Margin update successful")  // 성공 메시지 반환
                 .build());
+    }
+
+    @GetMapping("getDailyMarginSummary")
+    public ResponseEntity<CommonResponse<List<DailyMarginSummary>>> getDailyMarginSummary(@RequestParam("date") LocalDate date,
+                                                                   @AuthenticationPrincipal UserDetails userDetails) {
+        List<DailyMarginSummary> dailyMarginSummary = marginService.getDailyMarginSummary(userDetails.getUsername(), date);
+
+        return new ResponseEntity<>(CommonResponse
+                .<List<DailyMarginSummary>>builder("success : getMyCampaignDetails")
+                .data(dailyMarginSummary)
+                .build(), HttpStatus.OK);
     }
 }

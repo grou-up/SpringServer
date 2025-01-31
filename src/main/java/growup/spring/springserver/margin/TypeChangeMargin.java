@@ -2,6 +2,7 @@ package growup.spring.springserver.margin;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.margin.domain.Margin;
+import growup.spring.springserver.margin.dto.DailyMarginSummary;
 import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 
@@ -60,4 +61,12 @@ public class TypeChangeMargin {
         return marginResponseDtos;
     }
 
+    public static DailyMarginSummary getDailyMarginSummary(Margin marginData, String productName) {
+
+        return DailyMarginSummary.builder()
+                .marProductName(productName)
+                .marAdMargin(marginData.getMarAdMargin())
+                .marNetProfit(marginData.getMarNetProfit())
+                .build();
+    }
 }

@@ -10,6 +10,7 @@ import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.TypeChangeMargin;
 import growup.spring.springserver.margin.domain.Margin;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.margin.dto.DailyMarginSummary;
 import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 import growup.spring.springserver.margin.repository.MarginRepository;
@@ -126,10 +127,9 @@ public class MarginService {
 
         List<Margin> calculateMargin = calculateMargin(margins, campaignId, email);
 
-        return TypeChangeMargin.getMarginDto(calculateMargin,campaignId);
+        return TypeChangeMargin.getMarginDto(calculateMargin, campaignId);
 
     }
-
 
 
     private List<Margin> calculateMargin(List<Margin> margins, Long campaignId, String email) {
@@ -141,8 +141,7 @@ public class MarginService {
             if (margin.getMarAdMargin() == 0 && margin.getMarNetProfit() == 0.0) {
                 Margin updateMargin = callNetSales(margin, campaignId, margin.getMarDate(), email);
                 datas.add(updateMargin);
-            }
-            else {
+            } else {
                 datas.add(margin);
             }
         }
@@ -186,7 +185,7 @@ public class MarginService {
         );
     }
 
-//    기간 별 마진, 바꾸기
+    //    기간 별 마진, 바꾸기
     @Transactional
     public void marginUpdatesByPeriod(MfcRequestWithDatesDto mfcRequestWithDatesDto, String email) {
         LocalDate start = mfcRequestWithDatesDto.getStartDate();
@@ -221,12 +220,41 @@ public class MarginService {
                             : tempData.getMfcPerPiece();
 
                     adMargin += netSalesList.getNetSalesCount() * perPieceMargin;
-                    System.out.println("tempData = " + tempData.getMfcProductName() +" : " + adMargin+" : " + netSalesList.getNetSalesCount()+" : " + perPieceMargin);
+                    System.out.println("tempData = " + tempData.getMfcProductName() + " : " + adMargin + " : " + netSalesList.getNetSalesCount() + " : " + perPieceMargin);
                 } catch (NetSalesNotFoundProductName e) {
                     continue;
                 }
             }
             data.update(adMargin);
         }
+    }
+
+    public List<DailyMarginSummary> getDailyMarginSummary(String email, LocalDate targetDate) {
+
+        List<DailyMarginSummary> summaries = new ArrayList<>();
+
+        List<Campaign> campaignList = getCampaignsByEmail(email);
+
+        // CampaignId -> productName을 맵핑하는 Map 생성
+        Map<Long, String> campaignProductMap = campaignList.stream()
+                .collect(Collectors.toMap(Campaign::getCampaignId, Campaign::getCamCampaignName));
+
+        // 보석, 재영, 은아
+        for (Campaign campaign : campaignList) {
+            System.out.println("campaign = " + campaign.getCampaignId() + " : " + targetDate);
+            try {
+                Margin margin = getMargin(targetDate, campaign);
+                String productName = campaignProductMap.get(campaign.getCampaignId());
+                summaries.add(TypeChangeMargin.getDailyMarginSummary(margin, productName));
+            } catch (CampaignNotFoundException ex) {
+                continue;
+            }
+
+        }
+        return summaries;
+    }
+
+    private Margin getMargin(LocalDate targetDate, Campaign campaign) {
+        return marginRepository.findByCampaignIdAndDate(campaign.getCampaignId(), targetDate).orElseThrow(CampaignNotFoundException::new);
     }
 }
