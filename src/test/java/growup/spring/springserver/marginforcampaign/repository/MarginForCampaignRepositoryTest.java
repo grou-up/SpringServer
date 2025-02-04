@@ -27,7 +27,7 @@ public class MarginForCampaignRepositoryTest {
     @DisplayName("save success")
     @Test
     void test1() {
-        final MarginForCampaign marginForCampaign = getgetMarginForCampaign(getCampaign("송보석",1L), "모자", 1L, 1L, 1.1, 1.1);
+        final MarginForCampaign marginForCampaign = getgetMarginForCampaign(getCampaign("송보석",1L), "모자", 1L, 1L, 1L, 1.1);
         MarginForCampaign result = marginForCampaignRepository.save(marginForCampaign);
 
         assertThat(result.getCampaign().getCamCampaignName()).isEqualTo("송보석");
@@ -39,11 +39,11 @@ public class MarginForCampaignRepositoryTest {
         Campaign campaign = campaignRepository.save(getCampaign("송보석",1L));
         Campaign IncorrectCampaign = campaignRepository.save(getCampaign("Not송보석",2L));
 //        given
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자2", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자3", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자2", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자3", 1L, 1L, 1L, 1.1));
 
-        marginForCampaignRepository.save(getgetMarginForCampaign(IncorrectCampaign, "모자3", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(IncorrectCampaign, "모자3", 1L, 1L, 1L, 1.1));
 
 //        when
         List<MarginForCampaign> result = marginForCampaignRepository.MarginForCampaignByCampaignId(1L);
@@ -62,20 +62,20 @@ public class MarginForCampaignRepositoryTest {
         memberRepository.save(member);
 
         Campaign campaign = campaignRepository.save(getCampaign("송보석",1L,member));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자2", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign, "모자2", 1L, 1L, 1L, 1.1));
 
         Campaign campaign2 = campaignRepository.save(getCampaign("송보석1",2L,member));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자3", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자4", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자3", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자4", 1L, 1L, 1L, 1.1));
 
         Campaign campaign3 = campaignRepository.save(getCampaign("송보석2",3L,member));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자5", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자6", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign3, "모자5", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign3, "모자6", 1L, 1L, 1L, 1.1));
 
         Campaign campaign4 = campaignRepository.save(getCampaign("송보석3",4L,member));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자7", 1L, 1L, 1.1, 1.1));
-        marginForCampaignRepository.save(getgetMarginForCampaign(campaign2, "모자8", 1L, 1L, 1.1, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign4, "모자7", 1L, 1L, 1L, 1.1));
+        marginForCampaignRepository.save(getgetMarginForCampaign(campaign4, "모자8", 1L, 1L, 1L, 1.1));
 
         // 3 캠페인은 5,6 가지고 있음 8 다른곳에 있음 존재해야함
         Optional<MarginForCampaign> emptyResult= marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign("fa7271@naver.com", "모자8",3L);
@@ -123,7 +123,7 @@ public class MarginForCampaignRepositoryTest {
                 .build();
     }
 
-    public MarginForCampaign getgetMarginForCampaign(Campaign campaign, String productName, Long mfcTotalPrice, Long mfcCostPrice, Double mfcPerPiece, Double mfcZeroRoas) {
+    public MarginForCampaign getgetMarginForCampaign(Campaign campaign, String productName, Long mfcTotalPrice, Long mfcCostPrice, Long mfcPerPiece, Double mfcZeroRoas) {
         return MarginForCampaign.builder()
                 .mfcProductName(productName)
                 .mfcTotalPrice(mfcTotalPrice)

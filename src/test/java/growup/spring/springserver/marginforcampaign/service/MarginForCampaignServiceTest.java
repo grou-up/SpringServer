@@ -62,9 +62,9 @@ class MarginForCampaignServiceTest {
         //given
         Campaign campaign = getCampaign("송보석", 1L);
         doReturn(List.of(
-                getMarginForCampaign(campaign, "모자1", 1L, 1L, 1.1, 1.1),
-                getMarginForCampaign(campaign, "모자2", 1L, 1L, 1.1, 1.1),
-                getMarginForCampaign(campaign, "모자3", 1L, 1L, 1.1, 1.1)))
+                getMarginForCampaign(campaign, "모자1", 1L, 1L, 1L, 1.1),
+                getMarginForCampaign(campaign, "모자2", 1L, 1L, 1L, 1.1),
+                getMarginForCampaign(campaign, "모자3", 1L, 1L, 1L, 1.1)))
                 .when(marginForCampaignRepository).MarginForCampaignByCampaignId(1L);
 
         //when
@@ -81,8 +81,8 @@ class MarginForCampaignServiceTest {
     void searchMarginForCampaignProductName_Success1() {
         // given
         MfcRequestDtos requestDtos = getRequestDtos(1L, List.of(
-                getMfcDto("상품1", 1L, 1L, 1.1, 1.1),
-                getMfcDto("상품2", 1L, 1L, 1.1, 1.1)
+                getMfcDto("상품1", 1L, 1L, 1L, 1.1),
+                getMfcDto("상품2", 1L, 1L, 1L, 1.1)
         ));
 
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), any(), any()))
@@ -104,12 +104,12 @@ class MarginForCampaignServiceTest {
         // given
         Campaign campaign2 = getCampaign("임재영", 2L);
         MfcRequestDtos requestDtos = getRequestDtos(1L, List.of(
-                getMfcDto("존재하지 않는 상품", 1L, 1L, 1.1, 1.1),
-                getMfcDto("존재하는 상품", 1L, 1L, 1.1, 1.1)
+                getMfcDto("존재하지 않는 상품", 1L, 1L, 1L, 1.1),
+                getMfcDto("존재하는 상품", 1L, 1L, 1L, 1.1)
         ));
 
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), eq("존재하는 상품"), any()))
-                .thenReturn(Optional.of(getMarginForCampaign(campaign2, "존재하는상품", 1L, 1L, 1.1, 1.1))); // 존재하는 상품
+                .thenReturn(Optional.of(getMarginForCampaign(campaign2, "존재하는상품", 1L, 1L, 1L, 1.1))); // 존재하는 상품
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), eq("존재하지 않는 상품"), any()))
                 .thenReturn(Optional.empty()); // 존재하지 않는 상품
         when(campaignRepository.findByCampaignId(any()))
@@ -131,7 +131,7 @@ class MarginForCampaignServiceTest {
                 .thenReturn(Optional.of(getCampaign("송보석", 1L)));
 
         MfcRequestDtos requestDtos = getRequestDtos(1L, List.of(
-                getMfcDto("상품1", 2L, 2L, 1.1, 1.1) // 가격이 다름
+                getMfcDto("상품1", 2L, 2L, 1L, 1.1) // 가격이 다름
         ));
         // 다른 캠페인에는 해당 상품이 없음
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), eq("상품1"), any()))
@@ -139,7 +139,7 @@ class MarginForCampaignServiceTest {
 
         // 하지만 지금 캠페인에는 있음
         when(marginForCampaignRepository.findByCampaignAndMfcProductName(eq("상품1"), any()))
-                .thenReturn(Optional.of(getMarginForCampaign(mockCampaign, "상품1", 10L, 10L, 11.1, 11.1)));
+                .thenReturn(Optional.of(getMarginForCampaign(mockCampaign, "상품1", 10L, 10L, 11L, 11.1)));
         // when
         MfcValidationResponseDto response = marginForCampaignService.searchMarginForCampaignProductName("fa7271@naver.com", requestDtos);
         // then
@@ -186,7 +186,7 @@ class MarginForCampaignServiceTest {
                 .build();
     }
 
-    public MarginForCampaign getMarginForCampaign(Campaign campaign, String productName, Long mfcTotalPrice, Long mfcCostPrice, Double mfcPerPiece, Double mfcZeroRoas) {
+    public MarginForCampaign getMarginForCampaign(Campaign campaign, String productName, Long mfcTotalPrice, Long mfcCostPrice, Long mfcPerPiece, Double mfcZeroRoas) {
         return MarginForCampaign.builder()
                 .mfcProductName(productName)
                 .mfcTotalPrice(mfcTotalPrice)
@@ -204,7 +204,7 @@ class MarginForCampaignServiceTest {
                 .build();
     }
 
-    public MfcDto getMfcDto(String mfcProductName,Long mfcTotalPrice,Long mfcCostPrice,Double mfcPerPiece,Double mfcZeroRoas) {
+    public MfcDto getMfcDto(String mfcProductName,Long mfcTotalPrice,Long mfcCostPrice,Long mfcPerPiece,Double mfcZeroRoas) {
         return MfcDto.builder()
                 .mfcProductName(mfcProductName)
                 .mfcTotalPrice(mfcTotalPrice)

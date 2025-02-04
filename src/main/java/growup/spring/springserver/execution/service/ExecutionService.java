@@ -39,7 +39,6 @@ public class ExecutionService {
         int requestDataSize = requests.getData().size();
 
         List<Execution> check = check(requests.getData(), campaign);
-        executionRepository.saveAll(check);
         return TypeChangeExecution.entityToDto(requestDataSize, check.size());
     }
 
@@ -51,7 +50,7 @@ public class ExecutionService {
                 execution.update(data.getExeSalePrice(), data.getExeTotalPrice(), data.getExeCostPrice(), data.getExePerPiece(), data.getExeZeroRoas());
                 list.add(execution);
             } catch (CampaignOptionNotFoundException error) {
-                System.out.println(" 오바임 ");
+                continue;
             }
         }
         return list;

@@ -138,8 +138,8 @@ class MarginForCampaignControllerTest {
                 .searchMarginForCampaignProductName(any(String.class), any(MfcRequestDtos.class));
 
         final MfcRequestDtos requestBody = getRequestDtos(1L, List.of(
-                getMfcDto("빨강색", 1L, 2L, 1.1, 1.1),
-                getMfcDto("파랑색", 2L, 2L, 1.1, 1.1)
+                getMfcDto("빨강색", 1L, 2L, 1L, 1.1),
+                getMfcDto("파랑색", 2L, 2L, 1L, 1.1)
         ));
 
         final ResultActions result = mockMvc.perform(patch(url)
@@ -194,7 +194,7 @@ class MarginForCampaignControllerTest {
                 .mfcProductName(productName)
                 .mfcTotalPrice(totalPrice)
                 .mfcCostPrice(7000L)
-                .mfcPerPiece(3.0)
+                .mfcPerPiece(3L)
                 .mfcZeroRoas(1.2)
                 .build();
     }
@@ -204,7 +204,7 @@ class MarginForCampaignControllerTest {
                 .data(data)
                 .build();
     }
-    public MfcDto getMfcDto(String mfcProductName,Long mfcTotalPrice,Long mfcCostPrice,Double mfcPerPiece,Double mfcZeroRoas) {
+    public MfcDto getMfcDto(String mfcProductName,Long mfcTotalPrice,Long mfcCostPrice,Long mfcPerPiece,Double mfcZeroRoas) {
         return MfcDto.builder()
                 .mfcProductName(mfcProductName)
                 .mfcTotalPrice(mfcTotalPrice)

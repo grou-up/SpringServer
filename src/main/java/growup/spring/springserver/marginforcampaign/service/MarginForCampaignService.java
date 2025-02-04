@@ -1,7 +1,7 @@
 package growup.spring.springserver.marginforcampaign.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
-import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignProductNameNotFoundException;
 import growup.spring.springserver.marginforcampaign.TypeChangeMarginForCampaign;
@@ -22,7 +22,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MarginForCampaignService {
     private final MarginForCampaignRepository marginForCampaignRepository;
-    private final CampaignRepository campaignRepository;
+    private final CampaignService campaignService;
 
     public List<MarginForCampaignResDto> marginForCampaignByCampaignId(Long id) {
         List<MarginForCampaign> marginForCampaigns = marginForCampaignRepository.MarginForCampaignByCampaignId(id);
@@ -37,7 +37,7 @@ public class MarginForCampaignService {
     }
 
     public MfcValidationResponseDto searchMarginForCampaignProductName(String email, MfcRequestDtos requestDtos) {
-        Campaign campaign = getCampaign(requestDtos.getCampaignId());
+        Campaign campaign = campaignService.getCampaign(requestDtos.getCampaignId());
 
         return validateProducts(requestDtos.getData(), email, campaign);
     }
@@ -92,10 +92,6 @@ public class MarginForCampaignService {
 
     }
 
-    private Campaign getCampaign(Long campaignId) {
-        return campaignRepository.findByCampaignId(campaignId).orElseThrow(
-                () -> new IllegalArgumentException("해당 캠패인이 존재하지 않습니다."));
-    }
     private MfcValidationResponseDto createValidationResponse(int requestCount, int successCount, List<String> failedProductNames) {
         return TypeChangeMarginForCampaign.validationResponse(requestCount, successCount, failedProductNames);
     }

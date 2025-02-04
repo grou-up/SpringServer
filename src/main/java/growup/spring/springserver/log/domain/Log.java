@@ -21,6 +21,6 @@ public class Log {
     private String logContent;
 
     @ManyToOne
-    @JoinColumn(name = "mfc_id", referencedColumnName = "mfc_id")
-    private MarginForCampaign marginForCampaign;
+    @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
+    private Campaign campaign;
 }

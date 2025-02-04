@@ -67,6 +67,8 @@ public class Margin {
 
     public void update(long adMargin) {
         this.marAdMargin = adMargin;
-        this.marNetProfit = adMargin - (this.marAdCost * 1.1);
+        if (this.marActualSales != 0 && this.getMarAdMargin() != 0) {
+            this.marNetProfit = adMargin - (this.marAdCost * 1.1);
+        }
     }
 }

@@ -159,10 +159,10 @@ public class MarginService {
         // MarginForCampaign마다 netSales를 매칭해서 합산
         for (MarginForCampaign data : marginForCampaigns) {
             try {
-                NetSales netSalesList = checkNetSales(date, email, data.getMfcProductName());
+                NetSales netSales = checkNetSales(date, email, data.getMfcProductName());
                 // netSales가 존재하면 합산
-                actualSales += netSalesList.getNetSalesCount();
-                adMargin += netSalesList.getNetSalesCount() * data.getMfcPerPiece();
+                actualSales += netSales.getNetSalesCount();
+                adMargin += netSales.getNetSalesCount() * data.getMfcPerPiece();
             } catch (NetSalesNotFoundProductName e) {
                 continue;
             }
@@ -220,7 +220,6 @@ public class MarginService {
                             : tempData.getMfcPerPiece();
 
                     adMargin += netSalesList.getNetSalesCount() * perPieceMargin;
-                    System.out.println("tempData = " + tempData.getMfcProductName() + " : " + adMargin + " : " + netSalesList.getNetSalesCount() + " : " + perPieceMargin);
                 } catch (NetSalesNotFoundProductName e) {
                     continue;
                 }
@@ -235,16 +234,13 @@ public class MarginService {
 
         List<Campaign> campaignList = getCampaignsByEmail(email);
 
-        // CampaignId -> productName을 맵핑하는 Map 생성
-        Map<Long, String> campaignProductMap = campaignList.stream()
-                .collect(Collectors.toMap(Campaign::getCampaignId, Campaign::getCamCampaignName));
 
         // 보석, 재영, 은아
         for (Campaign campaign : campaignList) {
-            System.out.println("campaign = " + campaign.getCampaignId() + " : " + targetDate);
             try {
                 Margin margin = getMargin(targetDate, campaign);
-                String productName = campaignProductMap.get(campaign.getCampaignId());
+                String productName = campaign.getCamCampaignName();
+
                 summaries.add(TypeChangeMargin.getDailyMarginSummary(margin, productName));
             } catch (CampaignNotFoundException ex) {
                 continue;
