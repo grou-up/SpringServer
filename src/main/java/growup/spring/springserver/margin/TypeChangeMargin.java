@@ -2,9 +2,13 @@ package growup.spring.springserver.margin;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.margin.domain.Margin;
+import growup.spring.springserver.margin.dto.DailyMarginSummary;
+import growup.spring.springserver.margin.dto.MarginResponseDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TypeChangeMargin {
 
@@ -41,6 +45,28 @@ public class TypeChangeMargin {
                 .campaign(campaign)
                 .marDate(date)
                 .marSales(0.0) // 기본값 설정
+                .build();
+    }
+
+    public static List<MarginResponseDto> getMarginDto(List<Margin> calculateMargin, Long campaignId) {
+        List<MarginResponseDto> marginResponseDtos = new ArrayList<>();
+
+        MarginResponseDto marginResponseDto = MarginResponseDto.builder()
+                .campaignId(campaignId)
+                .data(calculateMargin)
+                .build();
+
+        marginResponseDtos.add(marginResponseDto);  // 리스트에 추가
+
+        return marginResponseDtos;
+    }
+
+    public static DailyMarginSummary getDailyMarginSummary(Margin marginData, String productName) {
+
+        return DailyMarginSummary.builder()
+                .marProductName(productName)
+                .marAdMargin(marginData.getMarAdMargin())
+                .marNetProfit(marginData.getMarNetProfit())
                 .build();
     }
 }
