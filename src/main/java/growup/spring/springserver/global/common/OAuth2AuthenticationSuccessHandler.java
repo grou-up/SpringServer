@@ -52,7 +52,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // HTTP 응답 헤더에 토큰 추가
         response.addHeader("Authorization", "Bearer " + accessToken);
 
-        String targetUrl = String.format("http://localhost:3000/oauth/kakao/callback?token=%s", accessToken);
+        String targetUrl = String.format("https://www.grouup.co.kr/oauth/kakao/callback?token=%s", accessToken);
         log.info("Redirecting to: {}", targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
