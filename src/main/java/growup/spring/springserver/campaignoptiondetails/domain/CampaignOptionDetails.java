@@ -38,6 +38,8 @@ public class CampaignOptionDetails {
 
     private String copSearchType;  // 검색 비검색
 
+    private Long copNetSales; // 순판매수
+
     @ManyToOne
     @JoinColumn(name = "execution_id", referencedColumnName = "execution_id")
     private Execution execution;

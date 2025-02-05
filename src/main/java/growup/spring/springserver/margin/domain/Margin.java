@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Builder
 @Getter
 @AllArgsConstructor
+@ToString
 public class Margin {
 
     @Id
@@ -24,13 +25,14 @@ public class Margin {
     private Long marImpressions;  // 노출 수
     private Long marClicks;  // 클릭 수 -> 클릭률 구해야함
     private Long marAdConversionSales;  // 광고 전환 판매 수
+    private Long marAdConversionSalesCount ; // 광고 전환 주문수 (CVR 계산 용)
     private Double marAdCost;
     private Double marSales;
     // 계산필요
     private Long marAdMargin;  // 광고 머진 계산필요
     private Double marNetProfit;  // 순이익
-    private Double marPerPiece; //  1개당 마진
-    private Double marZeroRoas; // 제로 Roas
+//    private Double marPerPiece; //  1개당 마진
+//    private Double marZeroRoas; // 제로 Roas
 
     // 입력 받아야 함
     private Double marTargetEfficiency;  // 목표 효율성
@@ -51,4 +53,22 @@ public class Margin {
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
     private Campaign campaign;
+
+    public void update(long actualSales, long adMargin) {
+        this.marAdMargin = adMargin; // 광고 마진
+
+        if (this.marActualSales == 0 && this.getMarAdMargin() == 0) {
+            this.marNetProfit = 0.0;
+        }else{
+            this.marNetProfit = adMargin - (this.marAdCost * 1.1) ; // 순 이익 = 광고마진 - 집행광고비1.1
+        }
+        this.marActualSales = actualSales; // 실제 판매수
+    }
+
+    public void update(long adMargin) {
+        this.marAdMargin = adMargin;
+        if (this.marActualSales != 0 && this.getMarAdMargin() != 0) {
+            this.marNetProfit = adMargin - (this.marAdCost * 1.1);
+        }
+    }
 }
