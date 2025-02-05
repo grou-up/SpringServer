@@ -68,5 +68,5 @@ jobs:
             --spring.datasource.password=${{ secrets.DATASOURCE_PASSWORD }} \
             --jwt.expiration=${{ secrets.JWT_EXPIRATION }} \
             --jwt.secretKey=${{ secrets.JWT_SECRET_KEY }} \
-            --kakao.clientId=${{ secrets.KAKAO_CLIENT_ID }} \
-            --kakao.clientSecret=${{ secrets.KAKAO_CLIENT_SECRET }} > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
+            --spring.security.oauth2.client.registration.kakao.client-id=${{ secrets.KAKAO_CLIENT_ID }} \
+            --spring.security.oauth2.client.registration.kakao.client-secret=${{ secrets.KAKAO_CLIENT_SECRET }} > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
