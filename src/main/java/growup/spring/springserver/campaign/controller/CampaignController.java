@@ -32,4 +32,9 @@ public class CampaignController {
                 .data(data)
                 .build(), HttpStatus.OK);
     }
+
+    @GetMapping("/test")
+    public String check() {
+        return "OK";
+    }
 }
