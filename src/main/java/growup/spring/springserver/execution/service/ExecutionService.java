@@ -33,7 +33,11 @@ public class ExecutionService {
         }
         return data;
     }
-
+  
+    public List<Execution> getExecutionsByCampaignIdAndExeIds(Long campaignId, List<Long> exeIds){
+        List<Execution> result = executionRepository.findByCampaignIdAndExeId(campaignId,exeIds);
+        return result;
+  
     @Transactional
     public ExecutionResponseDto updateExecutions(ExecutionRequestDtos requests, Campaign campaign) {
         int requestDataSize = requests.getData().size();

@@ -86,6 +86,19 @@ public class KeywordRepositoryTest{
         assertThat(result).hasSize(3);
     }
 
+    @Test
+    @DisplayName("Keword의 salesOption이 null인 경우 JPA에서 빈 객체가 나올까? null 이 나올까?")
+    void test8(){
+        //when
+        LocalDate dataDate = LocalDate.parse("2024-12-25",DateTimeFormatter.ISO_DATE);
+        Keyword input = keywordRepository.save(getKeyword("title1",campaign,dataDate,false));
+        //given
+        final Keyword result = keywordRepository.findById(input.getId()).get();
+        //then
+        assertThat(result.getKeyKeyword()).isEqualTo("title1");
+        assertThat(result.getKeyProductSales()).isNull();
+    }
+
     public Keyword getKeyword(String title, Campaign campaign){
         return Keyword.builder()
                 .keyKeyword(title)

@@ -30,7 +30,10 @@ public enum ErrorCode {
     //KeywordBid
     KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다."),
 
-    // MarginForCampaign
+    // Execution
+    EXECUTION_REQUEST_ERROR(HttpStatus.BAD_REQUEST,"잘못된 요청값 입니다.")
+
+      // MarginForCampaign
     MARGIN_FOR_CAMPAIGN_PRODUCT_NAME_NOT_FOUND(HttpStatus.BAD_REQUEST, "현재 캠페인 제외하고 없는 상품입니다."),
     MARGIN_FOR_CAMPAIGN_ID_NOT_FOUND(HttpStatus.BAD_REQUEST,"없는 ID 입니다."),
 

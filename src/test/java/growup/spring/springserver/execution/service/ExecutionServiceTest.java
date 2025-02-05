@@ -1,6 +1,9 @@
 package growup.spring.springserver.execution.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
+import growup.spring.springserver.execution.domain.Execution;
+import growup.spring.springserver.execution.repository.ExecutionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import growup.spring.springserver.exception.campaignoptiondetails.CampaignOptionNotFoundException;
 import growup.spring.springserver.execution.domain.Execution;
 import growup.spring.springserver.execution.dto.ExecutionDto;
@@ -33,7 +36,16 @@ class ExecutionServiceTest {
 
     @Mock
     ExecutionRepository executionRepository;
-
+  
+    private Campaign campaign;
+    
+    @BeforeEach
+    void setUp(){
+        campaign = Campaign.builder()
+                .camCampaignName("test")
+                .campaignId(1L)
+                .build();
+    }
     @Test
     @DisplayName("executionMarginResDto() ErrorCase1. 캠패인 존재 하지 않을때 ")
     void executionMarginResDto_ErrorCase1() {
@@ -48,6 +60,50 @@ class ExecutionServiceTest {
 
     }
 
+
+
+    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값이 조회 결과일 때")
+    @Test
+    void test1_1(){
+        //given
+        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+        final List<Long> request = List.of(1L,2L,3L);
+        //when
+        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+        //then
+        assertThat(result).hasSize(0);
+    }
+
+    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값을 조회 시")
+    @Test
+    void test1_2(){
+        //given
+        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+        final List<Long> request = List.of();
+        //when
+        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+        //then
+        assertThat(result).hasSize(0);
+    }
+
+    @DisplayName("getExecutionsByCampaignIdAndExeIds() : Success")
+    @Test
+    void test1_3(){
+        //given
+        doReturn(List.of(newExecution(campaign,1L,"details","name1"),
+                newExecution(campaign,2L,"details","name2"),
+                newExecution(campaign,3L,"details","name3"))).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+        final List<Long> request = List.of(1L,2L,3L);
+        //when
+        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+        //then
+        assertThat(result).hasSize(3);
+    }
+
+    public Execution newExecution(Campaign campaign, long l, String detail, String name) {
+        return Execution.builder()
+                .exeId(l)
+          
     @Test
     @DisplayName("executionMarginResDto() SuccessCase1. executionMarginResDto 반환 완료")
     void executionMarginResDto_SuccessCase1() {
@@ -158,6 +214,9 @@ class ExecutionServiceTest {
                 .build();
     }
 
+
+
+}
     public Campaign getCampaign(Long id, String title) {
         return Campaign.builder()
                 .campaignId(id)

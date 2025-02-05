@@ -1,6 +1,5 @@
 package growup.spring.springserver.keyword.service;
 
-import growup.spring.springserver.exception.InvalidDateFormatException;
 import growup.spring.springserver.exception.keyword.CampaignKeywordNotFoundException;
 import growup.spring.springserver.exclusionKeyword.dto.ExclusionKeywordResponseDto;
 import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordService;
@@ -8,11 +7,11 @@ import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
+import growup.spring.springserver.keywordBid.dto.KeywordBidResponseDto;
+import growup.spring.springserver.keywordBid.service.KeywordBidService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +22,6 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -33,9 +31,12 @@ public class KeywordServiceTest {
     private KeywordRepository keywordRepository;
     @Mock
     private ExclusionKeywordService exclusionKeywordService;
+    @Mock
+    private KeywordBidService keywordBidService;
 
     @InjectMocks
     private KeywordService keywordService;
+
 
     @Test
     @DisplayName("getKeyWords(): Success")
@@ -43,22 +44,36 @@ public class KeywordServiceTest {
         //when
         final LocalDate start = LocalDate.of(2024,12,14);
         final LocalDate end = LocalDate.of(2025,1,14);
-        doReturn(List.of(getKeyword("exKey1",660.0,0.0,10L,123L,2L,11000.0)
-                ,getKeyword("exKey2",660.0,0.0,10L,123L,4L,0.0)
-                ,getKeyword("exKey3",660.0,0.0,112L,123L,34L,0.0)))
+        doReturn(List.of(getKeyword("exKeyAndBid",660.0,0.0,10L,123L,2L,11000.0)
+                ,getKeyword("exKey",660.0,0.0,10L,123L,4L,0.0)
+                ,getKeyword("bidKey",660.0,0.0,112L,123L,34L,0.0)
+                ,getKeyword("nonKey",660.0,0.0,112L,123L,34L,0.0)))
                 .when(keywordRepository).findAllByDateANDCampaign(any(LocalDate.class),any(LocalDate.class),any(Long.class));
         doReturn(List.of(
-                getExclusionKeyword("exKey1",1L,LocalDate.now()),
-                getExclusionKeyword("exKey10",1L,LocalDate.now()),
-                getExclusionKeyword("exKey100",1L,LocalDate.now()))
-        ).when(exclusionKeywordService).getExclusionKeywords(1L);
+                getExclusionKeyword("exKeyAndBid",1L,LocalDate.now()),
+                getExclusionKeyword("exKey",1L,LocalDate.now()))
+        ).when(exclusionKeywordService).getExclusionKeywords(any(Long.class));
+        doReturn(getKeywordBidResponseDto(2,2,
+                List.of(getKeywordBidDto("exKeyAndBid",10L),
+                        getKeywordBidDto("bidKey",10L)))
+        ).when(keywordBidService).getKeywordBids(any(Long.class));
         //given
         final List<KeywordResponseDto> result  = keywordService.getKeywordsByCampaignId(start,end,1L);
         //then
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result.get(0).getKeyExcludeFlag()).isTrue();
-        assertThat(result.get(1).getKeyExcludeFlag()).isFalse();
-        assertThat(result.get(2).getKeyExcludeFlag()).isFalse();
+        for(KeywordResponseDto dto : result){
+            if(dto.getKeyKeyword().equals("exKeyAndBid")){
+                assertThat(dto.getKeyBidFlag()).isTrue();
+                assertThat(dto.getKeyExcludeFlag()).isTrue();
+            }
+            if(dto.getKeyKeyword().equals("bidKey")){
+                assertThat(dto.getKeyBidFlag()).isTrue();
+                assertThat(dto.getKeyExcludeFlag()).isFalse();
+            }
+            if(dto.getKeyKeyword().equals("exKey")){
+                assertThat(dto.getKeyBidFlag()).isFalse();
+                assertThat(dto.getKeyExcludeFlag()).isTrue();
+            }
+        }
     }
 
     //기존 method 에서 분리
@@ -190,7 +205,7 @@ public class KeywordServiceTest {
         assertThat(result.get("keyword1").getKeyCpc()).isEqualTo(((Math.round(((double)1980/(double) 132)*100))/100.0));
     }
 
-    @DisplayName("checkKeyType() : Success")
+    @DisplayName("checkKeyTypeExclusion() : Success")
     @Test
     void test5_1(){
         //when
@@ -202,7 +217,7 @@ public class KeywordServiceTest {
         map.put("k4",KeywordResponseDto.builder().build());
         exclusionKeys.add("k2");
         //given
-        final List<KeywordResponseDto> result = keywordService.checkKeyType(map,exclusionKeys);
+        final List<KeywordResponseDto> result = keywordService.checkKeyTypeExclusion(map,exclusionKeys);
         //then
         assertThat(result.get(1).getKeyExcludeFlag()).isEqualTo(true);
     }
@@ -216,10 +231,10 @@ public class KeywordServiceTest {
         map.put("k2",KeywordResponseDto.builder().build());
         map.put("k3",KeywordResponseDto.builder().build());
         map.put("k4",KeywordResponseDto.builder().build());
-        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidRequestDto("k1",1L),
-                getKeywordBidRequestDto("k2",2L),
-                getKeywordBidRequestDto("k3",3L),
-                getKeywordBidRequestDto("k4",4L));
+        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidDto("k1",1L),
+                getKeywordBidDto("k2",2L),
+                getKeywordBidDto("k3",3L),
+                getKeywordBidDto("k4",4L));
         //given
         final List<KeywordResponseDto> result = keywordService.addBids(map,keywordBidDtos);
         //then
@@ -239,9 +254,9 @@ public class KeywordServiceTest {
                 .when(keywordRepository).findKeywordsByDateAndCampaignIdAndKeys(any(LocalDate.class),any(LocalDate.class),any(Long.class),any(List.class));
         final LocalDate start = LocalDate.of(2024,12,14);
         final LocalDate end = LocalDate.of(2025,1,14);
-        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidRequestDto("k1",1L),
-                getKeywordBidRequestDto("k2",2L),
-                getKeywordBidRequestDto("k3",3L));
+        List<KeywordBidDto> keywordBidDtos = List.of(getKeywordBidDto("k1",1L),
+                getKeywordBidDto("k2",2L),
+                getKeywordBidDto("k3",3L));
         //given
         List<KeywordResponseDto> result = keywordService.getKeywordsByDateAndCampaignIdAndKeys(start,end,1L,keywordBidDtos);
         //then
@@ -249,6 +264,87 @@ public class KeywordServiceTest {
         assertThat(result.get(0).getBid()).isEqualTo(1L);
         assertThat(result.get(1).getBid()).isEqualTo(2L);
         assertThat(result.get(2).getBid()).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("getBidKeywordToSet() : Error 1. 빈 리스트를 받아 올 떄")
+    void test8_1(){
+        //when
+        doReturn(getKeywordBidResponseDto(0,0,List.of())).when(keywordBidService).getKeywordBids(any(Long.class));
+        //given
+        final Set<String> results = keywordService.getBidKeywrodToSet(1L);
+        //then
+        assertThat(results).hasSize(0);
+    }
+
+    @Test
+    @DisplayName("getBidKeywordToSet() : Success")
+    void test8_2(){
+        //when
+        doReturn(getKeywordBidResponseDto(4,4,
+                List.of(getKeywordBidDto("overlapKey",10L),
+                        getKeywordBidDto("overlapKey",10L),
+                        getKeywordBidDto("test1",10L),
+                        getKeywordBidDto("test2",10L))
+                )).when(keywordBidService).getKeywordBids(any(Long.class));
+        //given
+        final Set<String> results = keywordService.getBidKeywrodToSet(1L);
+        //then
+        assertThat(results).hasSize(3);
+        assertThat(results.contains("test1")).isTrue();
+        assertThat(results.contains("test3")).isFalse();
+    }
+
+    @Test
+    @DisplayName("checkKeyTypeKeywordBid() : Success")
+    void test9_1(){
+        //when
+        List<KeywordResponseDto> list = List.of(KeywordResponseDto.builder().keyKeyword("k1").keyBidFlag(false).build(),
+                                                KeywordResponseDto.builder().keyKeyword("k2").keyBidFlag(false).build(),
+                                                KeywordResponseDto.builder().keyKeyword("k3").keyBidFlag(false).build(),
+                                                KeywordResponseDto.builder().keyKeyword("k4").keyBidFlag(false).build());
+        Set<String> bidKey = new HashSet<>();
+        bidKey.add("k2");
+        //given
+        keywordService.checkKeyTypeKeywordBid(list,bidKey);
+        //then
+        assertThat(list.get(1).getKeyBidFlag()).isEqualTo(true);
+        assertThat(list.get(2).getKeyBidFlag()).isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("summeryKeySalesOption() : error 1. map Is Empty")
+    void test10_1(){
+        //when
+        Map<Long,Long> originData = new HashMap<>();
+        Map<Long,Long> inputData = new HashMap<>();
+        inputData.put(1L,3L);
+        inputData.put(5L,3L);
+        //given
+        keywordService.summeryKeySalesOption(originData,inputData);
+        //then
+        assertThat(originData).hasSize(2);
+        assertThat(originData.get(1L)).isEqualTo(3L);
+        assertThat(originData.get(5L)).isEqualTo(3L);
+    }
+
+    @Test
+    @DisplayName("summeryKeySalesOption() : Success")
+    void test10_2(){
+        //when
+        Map<Long,Long> originData = new HashMap<>();
+        originData.put(1L,1L);
+        originData.put(2L,1L);
+        originData.put(3L,1L);
+        Map<Long,Long> inputData = new HashMap<>();
+        inputData.put(1L,3L);
+        inputData.put(5L,3L);
+        //given
+        keywordService.summeryKeySalesOption(originData,inputData);
+        //then
+        assertThat(originData).hasSize(4);
+        assertThat(originData.get(1L)).isEqualTo(4L);
+        assertThat(originData.get(5L)).isEqualTo(3L);
     }
 
     public ExclusionKeywordResponseDto getExclusionKeyword(String key,
@@ -282,10 +378,20 @@ public class KeywordServiceTest {
                 .keyAdsales(adSale)
                 .build();
     }
-    public static KeywordBidDto getKeywordBidRequestDto(String keyword,Long bid){
+    public static KeywordBidDto getKeywordBidDto(String keyword, Long bid){
         return KeywordBidDto.builder()
                 .keyword(keyword)
                 .bid(bid)
+                .build();
+    }
+
+    public static KeywordBidResponseDto getKeywordBidResponseDto(int request,
+                                                                 int response,
+                                                                 List<KeywordBidDto> data){
+        return KeywordBidResponseDto.builder()
+                .responseNumber(response)
+                .requestNumber(request)
+                .response(data)
                 .build();
     }
 

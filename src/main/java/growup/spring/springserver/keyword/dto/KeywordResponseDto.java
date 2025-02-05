@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Data
 @Builder
@@ -34,11 +35,15 @@ public class KeywordResponseDto {
 
     private String keyDate;  // 날짜
 
-    private Boolean keyExcludeFlag = false;  // 제외여부
+    private Boolean keyExcludeFlag = false;// 제외여부
+
+    private Boolean keyBidFlag; // 수동입찰가 등록 여부
 
     private String keySearchType;// 검색 비검색
 
     private Long bid;
+
+    private Map<Long,Long> keySalesOptions;
 
     public void update(Keyword keyword){
         keyClicks += keyword.getKeyClicks();

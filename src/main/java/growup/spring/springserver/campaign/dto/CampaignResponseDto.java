@@ -8,4 +8,5 @@ import lombok.Data;
 public class CampaignResponseDto {
     String title;
     Long campaignId;
+    String camAdType;
 }

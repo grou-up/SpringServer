@@ -103,6 +103,32 @@ class ExecutionRepositoryTest {
         assertThat(result.get().getExeId()).isEqualTo(91130550615L);
     }
 
+    @Test
+    @DisplayName("findByCampaignIdAndExeId() : Success 1. 조회한 값이 없을 떄")
+    void test3_1(){
+        // given
+        execution1 = executionRepository.save(newExecution(campaign, 91130550615L, "블랙", "안경 케이스 - 블랙"));
+        execution2 = executionRepository.save(newExecution(campaign, 91130550622L, "화이트", "안경 케이스 - 화이트"));
+        execution3 = executionRepository.save(newExecution(campaign2, 91130550623L, "블루", "안경 케이스 - 블루"));
+        // when
+        List<Execution> result = executionRepository.findByCampaignIdAndExeId(3L,List.of(91130550615L,91130550622L));
+        // then
+        assertThat(result).hasSize(0);
+    }
+
+    @Test
+    @DisplayName("findByCampaignIdAndExeId() : Success")
+    void test3_2(){
+        // given
+        execution1 = executionRepository.save(newExecution(campaign, 91130550615L, "블랙", "안경 케이스 - 블랙"));
+        execution2 = executionRepository.save(newExecution(campaign, 91130550622L, "화이트", "안경 케이스 - 화이트"));
+        execution3 = executionRepository.save(newExecution(campaign2, 91130550623L, "블루", "안경 케이스 - 블루"));
+        // when
+        List<Execution> result = executionRepository.findByCampaignIdAndExeId(1L,List.of(91130550615L,91130550622L));
+        // then
+        assertThat(result).hasSize(2);
+    }
+
 
     public Member newMember() {
         return Member.builder().email("test@test.com").build();
