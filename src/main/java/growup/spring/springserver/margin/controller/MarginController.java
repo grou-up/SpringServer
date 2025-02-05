@@ -1,12 +1,8 @@
 package growup.spring.springserver.margin.controller;
 
 import growup.spring.springserver.global.common.CommonResponse;
-import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
-import growup.spring.springserver.margin.dto.DailyMarginSummary;
-import growup.spring.springserver.margin.dto.MarginResponseDto;
-import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
+import growup.spring.springserver.margin.dto.*;
 import growup.spring.springserver.margin.service.MarginService;
-import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
 import growup.spring.springserver.marginforcampaign.dto.MfcRequestWithDatesDto;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -64,6 +60,20 @@ public class MarginController {
                 .build(), HttpStatus.OK);
     }
 
+    // 일자별 모든 캠페인의 마진을더한 총 마진.
+    @GetMapping("/getNetProfit")
+    public ResponseEntity<CommonResponse<List<DailyNetProfit>>> getNetProfit(@RequestParam("startDate") LocalDate start,
+                                                                             @RequestParam("endDate") LocalDate end,
+                                                                             @AuthenticationPrincipal UserDetails userDetails) {
+        List<DailyNetProfit> dailyTotalMargin = marginService.getDailyTotalMargin(start, end, userDetails.getUsername());
+
+        return new ResponseEntity<>(CommonResponse
+                .<List<DailyNetProfit>>builder("success : getNetProfit")
+                .data(dailyTotalMargin)
+                .build(), HttpStatus.OK);
+
+    }
+
     // Return 타입 뭘로 ?. 고민
     @PatchMapping("marginUpdatesByPeriod")
     public ResponseEntity<CommonResponse<String>> marginUpdatesByPeriod(@Valid @RequestBody MfcRequestWithDatesDto mfcRequestWithDatesDto,
@@ -79,7 +89,7 @@ public class MarginController {
 
     @GetMapping("getDailyMarginSummary")
     public ResponseEntity<CommonResponse<List<DailyMarginSummary>>> getDailyMarginSummary(@RequestParam("date") LocalDate date,
-                                                                   @AuthenticationPrincipal UserDetails userDetails) {
+                                                                                          @AuthenticationPrincipal UserDetails userDetails) {
         List<DailyMarginSummary> dailyMarginSummary = marginService.getDailyMarginSummary(userDetails.getUsername(), date);
 
         return new ResponseEntity<>(CommonResponse

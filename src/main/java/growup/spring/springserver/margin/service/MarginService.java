@@ -9,14 +9,10 @@ import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.TypeChangeMargin;
 import growup.spring.springserver.margin.domain.Margin;
-import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
-import growup.spring.springserver.margin.dto.DailyMarginSummary;
-import growup.spring.springserver.margin.dto.MarginResponseDto;
-import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
+import growup.spring.springserver.margin.dto.*;
 import growup.spring.springserver.margin.repository.MarginRepository;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import growup.spring.springserver.marginforcampaign.dto.MfcDto;
-import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
 import growup.spring.springserver.marginforcampaign.dto.MfcRequestWithDatesDto;
 import growup.spring.springserver.marginforcampaign.repository.MarginForCampaignRepository;
 import growup.spring.springserver.netsales.domain.NetSales;
@@ -42,7 +38,7 @@ public class MarginService {
     private final CampaignRepository campaignRepository;
     private final MarginForCampaignRepository marginForCampaignRepository;
     private final NetRepository netRepository;
-//    private final OAuth2ClientRegistrationRepositoryConfiguration oAuth2ClientRegistrationRepositoryConfiguration;
+
 
     /*
      * TODO
@@ -252,5 +248,10 @@ public class MarginService {
 
     private Margin getMargin(LocalDate targetDate, Campaign campaign) {
         return marginRepository.findByCampaignIdAndDate(campaign.getCampaignId(), targetDate).orElseThrow(CampaignNotFoundException::new);
+    }
+
+    // 기간별 마진의 총 합
+    public List<DailyNetProfit> getDailyTotalMargin(LocalDate start, LocalDate end, String email) {
+        return marginRepository.findTotalMarginByDateRangeAndEmail(start, end, email);
     }
 }

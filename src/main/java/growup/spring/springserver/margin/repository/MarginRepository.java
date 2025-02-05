@@ -2,6 +2,7 @@ package growup.spring.springserver.margin.repository;
 
 import growup.spring.springserver.margin.domain.Margin;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
+import growup.spring.springserver.margin.dto.DailyNetProfit;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -49,5 +50,16 @@ public interface MarginRepository extends JpaRepository<Margin, Long> {
 
     @Query("SELECT m from Margin m where m.campaign.campaignId = :campaignId AND m.marDate = :date")
     Optional<Margin> findByCampaignIdAndDate(Long campaignId, LocalDate date);
+
+    @Query("SELECT new growup.spring.springserver.margin.dto.DailyNetProfit(" +
+            "m.marDate, SUM(m.marNetProfit)) " +
+            "FROM Margin m " +
+            "WHERE m.campaign.member.email = :email " +  // 내 캠페인만 필터링
+            "AND m.marDate BETWEEN :start AND :end " +
+            "GROUP BY m.marDate " +
+            "ORDER BY m.marDate")
+    List<DailyNetProfit> findTotalMarginByDateRangeAndEmail(@Param("start") LocalDate start,
+                                                            @Param("end") LocalDate end,
+                                                            @Param("email") String email);
 
 }
