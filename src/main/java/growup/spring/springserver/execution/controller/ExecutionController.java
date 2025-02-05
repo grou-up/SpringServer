@@ -27,11 +27,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/execution")
+
 @RestController
+@RequestMapping("/api/execution")
+@AllArgsConstructor
 public class ExecutionController {
-    @Autowired
-    private ExecutionService executionService;
+    private final ExecutionService executionService;
+    private final CampaignService campaignService;
+
 
     @GetMapping("/getByCampaignIdAndExeIds")
     public ResponseEntity<CommonResponse<?>> getByCampaignIdAndExeIds(
@@ -45,16 +48,10 @@ public class ExecutionController {
         List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(campaignId, exeIds);
         return new ResponseEntity<>(CommonResponse
                 .<List<ExecutionResponseDto>>builder("get Api success")
-                .data(result.stream().map(TypeChangeExecution::entityToDto).toList())
+                .data(result.stream().map(TypeChangeExecution::ExcutionEntityToDto).toList())
                 .build(), HttpStatus.OK);
     }
-}
-@RestController
-@RequestMapping("/api/execution")
-@AllArgsConstructor
-public class ExecutionController {
-    private final ExecutionService executionService;
-    private final CampaignService campaignService;
+
     @GetMapping("/getMyExecutionData")
     public ResponseEntity<CommonResponse<List<ExecutionMarginResDto>>> getMyExecutionData(@RequestParam Long campaignId) {
         List<ExecutionMarginResDto> myExecutionData = executionService.getMyExecutionData(campaignId);

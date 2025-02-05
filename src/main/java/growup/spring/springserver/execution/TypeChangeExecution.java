@@ -16,6 +16,13 @@ public class TypeChangeExecution {
                 .exeCostPrice(execution.getExeCostPrice())
                 .build();
     }
+    public static ExecutionResponseDto ExcutionEntityToDto(Execution execution) {
+        return ExecutionResponseDto
+                .builder()
+                .exeId(execution.getExeId())
+                .exeProductName(execution.getExeProductName())
+                .build();
+    }
     public static ExecutionResponseDto entityToDto(int requestDataSize, int dataSize) {
         return ExecutionResponseDto
                 .builder()

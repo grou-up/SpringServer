@@ -103,6 +103,11 @@ class ExecutionServiceTest {
     public Execution newExecution(Campaign campaign, long l, String detail, String name) {
         return Execution.builder()
                 .exeId(l)
+                .exeDetailCategory(detail)
+                .exeProductName(name)
+                .campaign(campaign)
+                .build();
+    }
           
     @Test
     @DisplayName("executionMarginResDto() SuccessCase1. executionMarginResDto 반환 완료")
@@ -214,9 +219,6 @@ class ExecutionServiceTest {
                 .build();
     }
 
-
-
-}
     public Campaign getCampaign(Long id, String title) {
         return Campaign.builder()
                 .campaignId(id)

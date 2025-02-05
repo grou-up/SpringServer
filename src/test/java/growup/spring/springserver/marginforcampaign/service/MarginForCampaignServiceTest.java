@@ -2,6 +2,7 @@ package growup.spring.springserver.marginforcampaign.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.marginforcampaign.MarginForCampaignIdNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
@@ -38,6 +39,9 @@ class MarginForCampaignServiceTest {
 
     @InjectMocks
     private MarginForCampaignService marginForCampaignService;
+    @Mock
+    private CampaignService campaignService;
+
 
     private Member mockMember;
     private Campaign mockCampaign;
@@ -45,6 +49,7 @@ class MarginForCampaignServiceTest {
     @BeforeEach
     void setUp() {
         mockMember = getMember();
+        mockCampaign = getCampaign("송보석", 1L);
     }
 
     @Test
@@ -84,12 +89,9 @@ class MarginForCampaignServiceTest {
                 getMfcDto("상품1", 1L, 1L, 1L, 1.1),
                 getMfcDto("상품2", 1L, 1L, 1L, 1.1)
         ));
-
+        when(campaignService.getCampaign(anyLong())).thenReturn(mockCampaign);
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), any(), any()))
-                .thenReturn(Optional.empty());
-        when(campaignRepository.findByCampaignId(any()))
-                .thenReturn(Optional.of(getCampaign("송보석", 1L)));
-
+                .thenReturn(Optional.empty()); // 모든 상품이 존재하지 않음
         // when
         MfcValidationResponseDto response = marginForCampaignService.searchMarginForCampaignProductName("fa7271@naver.com", requestDtos);
 
@@ -112,8 +114,8 @@ class MarginForCampaignServiceTest {
                 .thenReturn(Optional.of(getMarginForCampaign(campaign2, "존재하는상품", 1L, 1L, 1L, 1.1))); // 존재하는 상품
         when(marginForCampaignRepository.findByEmailAndMfcProductNameExcludingCampaign(any(), eq("존재하지 않는 상품"), any()))
                 .thenReturn(Optional.empty()); // 존재하지 않는 상품
-        when(campaignRepository.findByCampaignId(any()))
-                .thenReturn(Optional.of(getCampaign("임재영", 2L)));
+        when(campaignService.getCampaign(anyLong())).thenReturn(campaign2);
+
         // when
         MfcValidationResponseDto response = marginForCampaignService.searchMarginForCampaignProductName("fa7271@naver.com", requestDtos);
 
@@ -127,8 +129,8 @@ class MarginForCampaignServiceTest {
     void searchMarginForCampaignProductName_Success3() {
         // given
 
-        when(campaignRepository.findByCampaignId(any()))
-                .thenReturn(Optional.of(getCampaign("송보석", 1L)));
+
+        when(campaignService.getCampaign(anyLong())).thenReturn(mockCampaign);
 
         MfcRequestDtos requestDtos = getRequestDtos(1L, List.of(
                 getMfcDto("상품1", 2L, 2L, 1L, 1.1) // 가격이 다름
