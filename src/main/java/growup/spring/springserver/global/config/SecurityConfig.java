@@ -106,7 +106,7 @@ public class SecurityConfig {
 
     private static final String[] LoginApiUrl = {
             "/api/members/signup",
-            "/api/members/test",
+            "/api/members/test1",
             "/api/members/login",
             "/api/oauth/kakao/callback/**",
             "/v3/api-docs/**",          // OpenAPI 문서 JSON
