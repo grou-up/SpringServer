@@ -43,7 +43,7 @@ public class KeywordResponseDto {
 
     private Long bid;
 
-    private Map<Long,Long> keySalesOptions;
+    private Map<String,Long> keySalesOptions;
 
     public void update(Keyword keyword){
         keyClicks += keyword.getKeyClicks();
