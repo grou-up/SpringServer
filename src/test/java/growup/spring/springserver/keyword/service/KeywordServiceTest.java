@@ -316,35 +316,36 @@ public class KeywordServiceTest {
     @DisplayName("summeryKeySalesOption() : error 1. map Is Empty")
     void test10_1(){
         //when
-        Map<Long,Long> originData = new HashMap<>();
-        Map<Long,Long> inputData = new HashMap<>();
-        inputData.put(1L,3L);
-        inputData.put(5L,3L);
+        Map<String,Long> originData = new HashMap<>();
+        Map<String,Long> inputData = new HashMap<>();
+        inputData.put("옵션1",3L);
+        inputData.put("옵션2",3L);
         //given
         keywordService.summeryKeySalesOption(originData,inputData);
         //then
         assertThat(originData).hasSize(2);
-        assertThat(originData.get(1L)).isEqualTo(3L);
-        assertThat(originData.get(5L)).isEqualTo(3L);
+        assertThat(originData.get("옵션1")).isEqualTo(3L);
+        assertThat(originData.get("옵션2")).isEqualTo(3L);
     }
 
     @Test
     @DisplayName("summeryKeySalesOption() : Success")
     void test10_2(){
         //when
-        Map<Long,Long> originData = new HashMap<>();
-        originData.put(1L,1L);
-        originData.put(2L,1L);
-        originData.put(3L,1L);
-        Map<Long,Long> inputData = new HashMap<>();
-        inputData.put(1L,3L);
-        inputData.put(5L,3L);
+        Map<String,Long> originData = new HashMap<>();
+        Map<String,Long> inputData = new HashMap<>();
+        originData.put("옵션1",1L);
+        originData.put("옵션2",1L);
+        originData.put("옵션3",1L);
+
+        inputData.put("옵션1",3L);
+        inputData.put("옵션5",3L);
         //given
         keywordService.summeryKeySalesOption(originData,inputData);
         //then
         assertThat(originData).hasSize(4);
-        assertThat(originData.get(1L)).isEqualTo(4L);
-        assertThat(originData.get(5L)).isEqualTo(3L);
+        assertThat(originData.get("옵션1")).isEqualTo(4L);
+        assertThat(originData.get("옵션5")).isEqualTo(3L);
     }
 
     public ExclusionKeywordResponseDto getExclusionKeyword(String key,
