@@ -48,7 +48,7 @@ public class Keyword {
     private String keySearchType;  // 검색 비검색
 
     @Type(JsonBinaryType.class) // JSON 필드 매핑
-    @Column(columnDefinition = "json")
+    @Column(columnDefinition = "json CHARACTER SET utf8mb4")
     private Map<String, Long> keyProductSales; // JSON 형태로 상품ID와 판매량 저장
 
     @ManyToOne
