@@ -36,21 +36,21 @@ public class ExecutionController {
     private final CampaignService campaignService;
 
 
-    @GetMapping("/getByCampaignIdAndExeIds")
-    public ResponseEntity<CommonResponse<?>> getByCampaignIdAndExeIds(
-            @RequestParam("campaignId") Long campaignId,
-            @RequestParam("exeIds") List<Long> exeIds) throws RequestError {
-
-        if (exeIds == null || exeIds.isEmpty() || campaignId == null) {
-            throw new RequestError();
-        }
-
-        List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(campaignId, exeIds);
-        return new ResponseEntity<>(CommonResponse
-                .<List<ExecutionResponseDto>>builder("get Api success")
-                .data(result.stream().map(TypeChangeExecution::ExcutionEntityToDto).toList())
-                .build(), HttpStatus.OK);
-    }
+//    @GetMapping("/getByCampaignIdAndExeIds")
+//    public ResponseEntity<CommonResponse<?>> getByCampaignIdAndExeIds(
+//            @RequestParam("campaignId") Long campaignId,
+//            @RequestParam("exeIds") List<Long> exeIds) throws RequestError {
+//
+//        if (exeIds == null || exeIds.isEmpty() || campaignId == null) {
+//            throw new RequestError();
+//        }
+//
+//        List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(campaignId, exeIds);
+//        return new ResponseEntity<>(CommonResponse
+//                .<List<ExecutionResponseDto>>builder("get Api success")
+//                .data(result.stream().map(TypeChangeExecution::ExcutionEntityToDto).toList())
+//                .build(), HttpStatus.OK);
+//    }
 
     @GetMapping("/getMyExecutionData")
     public ResponseEntity<CommonResponse<List<ExecutionMarginResDto>>> getMyExecutionData(@RequestParam Long campaignId) {

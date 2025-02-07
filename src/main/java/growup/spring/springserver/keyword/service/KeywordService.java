@@ -7,6 +7,7 @@ import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordServi
 import growup.spring.springserver.keyword.domain.Keyword;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
 import growup.spring.springserver.keyword.TypeChangeKeyword;
+import growup.spring.springserver.keyword.dto.KeywordTotalDataResDto;
 import growup.spring.springserver.keyword.repository.KeywordRepository;
 import growup.spring.springserver.keywordBid.dto.KeywordBidDto;
 import growup.spring.springserver.keywordBid.dto.KeywordBidResponseDto;
@@ -14,6 +15,7 @@ import growup.spring.springserver.keywordBid.service.KeywordBidService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -118,5 +120,34 @@ public class KeywordService {
         for(KeywordResponseDto key : data){
             if(!bidKey.isEmpty() && bidKey.contains(key.getKeyKeyword())) key.setKeyBidFlag(true);
         }
+    }
+
+    public KeywordTotalDataResDto getTotalData(LocalDate start,
+                                               LocalDate end,
+                                               Long campaignId){
+        List<Keyword> data = keywordRepository.findAllByDateANDCampaign(start,end,campaignId);
+        Map<LocalDate,KeywordResponseDto> search = new HashMap<>();
+        Map<LocalDate,KeywordResponseDto> nonSearch = new HashMap<>();
+        for(Keyword keyword : data){
+            //nonSearch
+            if(keyword.getKeyKeyword().isEmpty()){
+                if(nonSearch.containsKey(keyword.getKeyDate())){
+                    nonSearch.get(keyword.getKeyDate()).update(keyword);
+                    continue;
+                }
+                nonSearch.put(keyword.getKeyDate(),TypeChangeKeyword.entityToResponseDto(keyword));
+                continue;
+            }
+            //search
+            if(search.containsKey(keyword.getKeyDate())){
+                search.get(keyword.getKeyDate()).update(keyword);
+                continue;
+            }
+            search.put(keyword.getKeyDate(),TypeChangeKeyword.entityToResponseDto(keyword));
+        }
+        return KeywordTotalDataResDto.builder()
+                .search(search)
+                .nonSearch(nonSearch)
+                .build();
     }
 }

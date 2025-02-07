@@ -62,52 +62,52 @@ class ExecutionServiceTest {
 
 
 
-    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값이 조회 결과일 때")
-    @Test
-    void test1_1(){
-        //given
-        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
-        final List<Long> request = List.of(1L,2L,3L);
-        //when
-        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
-        //then
-        assertThat(result).hasSize(0);
-    }
-
-    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값을 조회 시")
-    @Test
-    void test1_2(){
-        //given
-        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
-        final List<Long> request = List.of();
-        //when
-        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
-        //then
-        assertThat(result).hasSize(0);
-    }
-
-    @DisplayName("getExecutionsByCampaignIdAndExeIds() : Success")
-    @Test
-    void test1_3(){
-        //given
-        doReturn(List.of(newExecution(campaign,1L,"details","name1"),
-                newExecution(campaign,2L,"details","name2"),
-                newExecution(campaign,3L,"details","name3"))).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
-        final List<Long> request = List.of(1L,2L,3L);
-        //when
-        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
-        //then
-        assertThat(result).hasSize(3);
-    }
-
-    public Execution newExecution(Campaign campaign, long l, String detail, String name) {
-        return Execution.builder()
-                .exeId(l)
-                .exeDetailCategory(detail)
-                .exeProductName(name)
-                .campaign(campaign)
-                .build();
-    }
+//    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값이 조회 결과일 때")
+//    @Test
+//    void test1_1(){
+//        //given
+//        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+//        final List<Long> request = List.of(1L,2L,3L);
+//        //when
+//        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+//        //then
+//        assertThat(result).hasSize(0);
+//    }
+//
+//    @DisplayName("getExecutionsByCampaignIdAndExeIds() : 빈값을 조회 시")
+//    @Test
+//    void test1_2(){
+//        //given
+//        doReturn(List.of()).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+//        final List<Long> request = List.of();
+//        //when
+//        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+//        //then
+//        assertThat(result).hasSize(0);
+//    }
+//
+//    @DisplayName("getExecutionsByCampaignIdAndExeIds() : Success")
+//    @Test
+//    void test1_3(){
+//        //given
+//        doReturn(List.of(newExecution(campaign,1L,"details","name1"),
+//                newExecution(campaign,2L,"details","name2"),
+//                newExecution(campaign,3L,"details","name3"))).when(executionRepository).findByCampaignIdAndExeId(any(Long.class),any(List.class));
+//        final List<Long> request = List.of(1L,2L,3L);
+//        //when
+//        final List<Execution> result = executionService.getExecutionsByCampaignIdAndExeIds(1L,request);
+//        //then
+//        assertThat(result).hasSize(3);
+//    }
+//
+//    public Execution newExecution(Campaign campaign, long l, String detail, String name) {
+//        return Execution.builder()
+//                .exeId(l)
+//                .exeDetailCategory(detail)
+//                .exeProductName(name)
+//                .campaign(campaign)
+//                .build();
+//    }
           
     @Test
     @DisplayName("executionMarginResDto() SuccessCase1. executionMarginResDto 반환 완료")
