@@ -2,6 +2,7 @@ package growup.spring.springserver.keyword.controller;
 
 import growup.spring.springserver.global.common.CommonResponse;
 import growup.spring.springserver.keyword.dto.KeywordResponseDto;
+import growup.spring.springserver.keyword.dto.KeywordTotalDataResDto;
 import growup.spring.springserver.keyword.service.KeywordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,17 @@ public class KeywordController {
         log.info("end getKeywordAboutCampaign target "+ userDetails.getUsername());
         return new ResponseEntity<>(CommonResponse
                 .<List<KeywordResponseDto>>builder("success : get keywords")
+                .data(result)
+                .build(), HttpStatus.OK);
+    }
+
+    @GetMapping("/getCampaignStat")
+    public ResponseEntity<CommonResponse<KeywordTotalDataResDto>> getCampaignStat(@RequestParam("start") LocalDate start,
+                                                                                  @RequestParam("end") LocalDate end,
+                                                                                  @RequestParam("campaignId") Long campaignId){
+        KeywordTotalDataResDto result = keywordService.getTotalData(start,end,campaignId);
+        return new ResponseEntity<>(CommonResponse
+                .<KeywordTotalDataResDto>builder("success : get keywords")
                 .data(result)
                 .build(), HttpStatus.OK);
     }
