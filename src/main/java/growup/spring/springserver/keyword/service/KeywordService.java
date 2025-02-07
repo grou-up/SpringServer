@@ -75,9 +75,9 @@ public class KeywordService {
         return map;
     }
 
-    public void summeryKeySalesOption(Map<Long,Long> originData, Map<Long,Long> inputData){
+    public void summeryKeySalesOption(Map<String,Long> originData, Map<String,Long> inputData){
         if(inputData == null) return;
-        for(Long inputKey : inputData.keySet()){
+        for(String inputKey : inputData.keySet()){
             originData.put(inputKey,originData.getOrDefault(inputKey,0L)+inputData.get(inputKey));
         }
     }

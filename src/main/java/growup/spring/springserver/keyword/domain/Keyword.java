@@ -49,7 +49,7 @@ public class Keyword {
 
     @Type(JsonBinaryType.class) // JSON 필드 매핑
     @Column(columnDefinition = "json")
-    private Map<Long, Long> keyProductSales; // JSON 형태로 상품ID와 판매량 저장
+    private Map<String, Long> keyProductSales; // JSON 형태로 상품ID와 판매량 저장
 
     @ManyToOne
     @JoinColumn(name = "campaignId", referencedColumnName = "campaignId")
