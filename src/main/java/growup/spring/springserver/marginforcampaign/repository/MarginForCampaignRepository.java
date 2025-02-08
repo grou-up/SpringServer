@@ -22,9 +22,9 @@ public interface MarginForCampaignRepository extends JpaRepository<MarginForCamp
                                                                               @Param("productName") String productName,
                                                                               @Param("campaignId") Long campaignId);
 
-    @Query("SELECT m FROM MarginForCampaign m WHERE m.campaign.campaignId = :campaignId AND m.mfcProductName = :productName")
-    Optional<MarginForCampaign> findByCampaignAndMfcProductName(@Param("productName") String productName,
-                                                                @Param("campaignId") Long campaignId);
+//    @Query("SELECT m FROM MarginForCampaign m WHERE m.campaign.campaignId = :campaignId AND m.mfcProductName = :productName")
+//    Optional<MarginForCampaign> findByCampaignAndMfcProductName(@Param("productName") String productName,
+//                                                                @Param("campaignId") Long campaignId);
     @Query("SELECT m FROM MarginForCampaign m WHERE m.campaign.campaignId = :campaignId AND m.id = :mfcId")
     Optional<MarginForCampaign> findByCampaignAndMfcId(@Param("mfcId") Long mfcId,
                                                                 @Param("campaignId") Long campaignId);
