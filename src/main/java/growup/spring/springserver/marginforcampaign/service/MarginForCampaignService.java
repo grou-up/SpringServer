@@ -12,14 +12,14 @@ import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
 import growup.spring.springserver.marginforcampaign.dto.MfcValidationResponseDto;
 import growup.spring.springserver.marginforcampaign.repository.MarginForCampaignRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class MarginForCampaignService {
     private final MarginForCampaignRepository marginForCampaignRepository;
     private final CampaignService campaignService;
@@ -53,8 +53,18 @@ public class MarginForCampaignService {
     private MfcValidationResponseDto validateProducts(List<MfcDto> datas, String email, Campaign campaign) {
         List<MarginForCampaign> successfulProducts = new ArrayList<>();
         List<String> failedProductNames = new ArrayList<>();
+        Set<String> productNamesSet = new HashSet<>(); // 중복 체크를 위한 Set
+
         for (MfcDto data : datas) {
+            if (productNamesSet.contains(data.getMfcProductName())) {
+                // 이미 처리한 상품명이면 건너뜁니다.
+                failedProductNames.add(data.getMfcProductName());
+                continue;
+            }
+            productNamesSet.add(data.getMfcProductName()); // Set에 추가
+
             try {
+                checkDuplicate(data,campaign);
                 checkProductName(email, data, campaign);
                 failedProductNames.add(data.getMfcProductName());
             } catch (MarginForCampaignProductNameNotFoundException exception) {
@@ -68,8 +78,19 @@ public class MarginForCampaignService {
         return createValidationResponse(datas.size(), successfulProducts.size(), failedProductNames);
     }
 
+    // 자기 캠페인에서 중복 체크 -> 존재하면 새로 만드는게 아닌 업데이트를 해야함
+    private void checkDuplicate(MfcDto data, Campaign campaign) {
+        if (marginForCampaignRepository.existsByCampaignAndMfcProductName(campaign, data.getMfcProductName())) {
+            throw new MarginForCampaignProductNameNotFoundException();
+        }
+    }
+
     private void handleProduct(MfcDto data, Campaign campaign, List<MarginForCampaign> successfulProducts) {
-        Optional<MarginForCampaign> existingProduct = marginForCampaignRepository.findByCampaignAndMfcProductName(data.getMfcProductName(), campaign.getCampaignId());
+//         상품명으로 찾을경우 상품명을 수정하였을때 새롭게 같은이름으로 db가 들어감
+//        Optional<MarginForCampaign> existingProduct = marginForCampaignRepository.findByCampaignAndMfcProductName(data.getMfcProductName(), campaign.getCampaignId());
+
+//        캠페인 명과 MfcId 로 찾음
+        Optional<MarginForCampaign> existingProduct = marginForCampaignRepository.findByCampaignAndMfcId(data.getMfcId(), campaign.getCampaignId());
         if (existingProduct.isPresent()) {
             // 기존 상품 업데이트
             MarginForCampaign updateMarginForCampaign = existingProduct.get();

@@ -1,5 +1,6 @@
 package growup.spring.springserver.marginforcampaign.repository;
 
+import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,6 +25,9 @@ public interface MarginForCampaignRepository extends JpaRepository<MarginForCamp
     @Query("SELECT m FROM MarginForCampaign m WHERE m.campaign.campaignId = :campaignId AND m.mfcProductName = :productName")
     Optional<MarginForCampaign> findByCampaignAndMfcProductName(@Param("productName") String productName,
                                                                 @Param("campaignId") Long campaignId);
+    @Query("SELECT m FROM MarginForCampaign m WHERE m.campaign.campaignId = :campaignId AND m.id = :mfcId")
+    Optional<MarginForCampaign> findByCampaignAndMfcId(@Param("mfcId") Long mfcId,
+                                                                @Param("campaignId") Long campaignId);
 
-
+    boolean existsByCampaignAndMfcProductName(Campaign campaign, String mfcProductName);
 }
