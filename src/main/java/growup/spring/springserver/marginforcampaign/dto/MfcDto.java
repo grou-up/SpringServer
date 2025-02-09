@@ -6,6 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class MfcDto {
+    private Long mfcId;
     private String mfcProductName; // 상품명
     private Long mfcSalePrice;
     private Long mfcTotalPrice; // 총비용

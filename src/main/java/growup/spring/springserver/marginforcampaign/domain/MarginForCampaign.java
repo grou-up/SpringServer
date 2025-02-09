@@ -33,6 +33,7 @@ public class MarginForCampaign {
     private Campaign campaign;
 
     public void updateExistingProduct(MfcDto data) {
+        this.mfcProductName = data.getMfcProductName();
         this.mfcSalePrice =data.getMfcSalePrice();
         this.mfcTotalPrice = data.getMfcTotalPrice();
         this.mfcCostPrice= data.getMfcCostPrice();
