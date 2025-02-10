@@ -69,4 +69,8 @@ public class MemberService {
 
         return typeChange.MemberToMyEmailAndRoleDto(member);
     }
+    public Member getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(MemberNotFoundException::new);
+    }
 }

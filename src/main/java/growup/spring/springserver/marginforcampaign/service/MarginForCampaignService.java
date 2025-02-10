@@ -38,7 +38,7 @@ public class MarginForCampaignService {
     }
 
     public MfcValidationResponseDto searchMarginForCampaignProductName(String email, MfcRequestDtos requestDtos) {
-        Campaign campaign = campaignService.getCampaign(requestDtos.getCampaignId());
+        Campaign campaign = campaignService.getMyCampaign(requestDtos.getCampaignId(),email);
 
         return validateProducts(requestDtos.getData(), email, campaign);
     }

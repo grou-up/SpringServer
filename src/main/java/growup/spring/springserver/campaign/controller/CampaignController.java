@@ -23,7 +23,7 @@ public class CampaignController {
     private CampaignService campaignService;
 
     @GetMapping("/getMyCampaigns")
-    public ResponseEntity<CommonResponse<?>>getMyCampaigns(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<CommonResponse<List<CampaignResponseDto>>>getMyCampaigns(@AuthenticationPrincipal UserDetails userDetails) {
         log.info("Start getMyCampaigns API target is :"+userDetails.getUsername());
         List<CampaignResponseDto> data = campaignService.getMyCampaigns(userDetails.getUsername());
         log.info("End getMyCampaigns API target is :"+userDetails.getUsername());
