@@ -35,8 +35,4 @@ public class CampaignService {
                 CampaignNotFoundException::new
         );
     }
-    public Campaign getCampaign(Long campaignId) {
-        return campaignRepository.findByCampaignId(campaignId).orElseThrow(
-                () -> new IllegalArgumentException("해당 캠패인이 존재하지 않습니다."));
-    }
 }
