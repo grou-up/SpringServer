@@ -2,9 +2,11 @@ package growup.spring.springserver.margin.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
+import growup.spring.springserver.login.service.MemberService;
 import growup.spring.springserver.margin.domain.Margin;
 import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
 import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
@@ -31,6 +33,10 @@ class MarginServiceTest {
     @InjectMocks
     private MarginService marginService;
     @Mock
+    private CampaignService campaignService;
+    @Mock
+    private MemberService memberService;
+    @Mock
     private MarginRepository marginRepository;
     @Mock
     private CampaignRepository campaignRepository;
@@ -41,11 +47,10 @@ class MarginServiceTest {
     @DisplayName("getCampaignAllSales(): ErrorCase1.캠패인 목록이 없을 때")
     void test1() {
         //given
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail(any(String.class));
-        doReturn(new ArrayList<Campaign>()).when(campaignRepository).findAllByMember(any(Member.class));
+        doThrow(new CampaignNotFoundException()).when(campaignService).getCampaignsByEmail(any(String.class));
         //when
         final CampaignNotFoundException result = assertThrows(CampaignNotFoundException.class,
-                ()->marginService.getCampaignAllSales("test@test.com", LocalDate.of(2024,11,11)));
+                () -> marginService.getCampaignAllSales("test@test.com", LocalDate.of(2024, 11, 11)));
         //then
         assertThat(result.getMessage()).isEqualTo("현재 등록된 캠페인이 없습니다.");
     }
@@ -70,12 +75,11 @@ class MarginServiceTest {
         // 어제 데이터만 존재
         List<Margin> yesterdayMargins = List.of(
                 newMargin(yesterday, campaigns.get(0), 180.0),
-                newMargin(yesterday, campaigns.get(1),  240.0)
+                newMargin(yesterday, campaigns.get(1), 240.0)
         );
 
         // Mock 설정
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
-        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(campaigns).when(campaignService).getCampaignsByEmail(any(String.class));
         doAnswer(invocation -> {
             List<Long> ids = invocation.getArgument(0); // 실제 호출된 값
             LocalDate from = invocation.getArgument(1);
@@ -124,8 +128,7 @@ class MarginServiceTest {
         );
 
         // Mock 설정
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
-        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(campaigns).when(campaignService).getCampaignsByEmail(any(String.class));
         doReturn(mixedMargins).when(marginRepository).findByCampaignIdsAndDates(
                 campaigns.stream().map(Campaign::getCampaignId).toList(),
                 yesterday,
@@ -169,8 +172,7 @@ class MarginServiceTest {
         );
 
         // Mock 설정
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
-        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(campaigns).when(campaignService).getCampaignsByEmail(any(String.class));
         doReturn(margins).when(marginRepository).findByCampaignIdsAndDates(
                 campaigns.stream().map(Campaign::getCampaignId).toList(),
                 yesterday, today
@@ -214,8 +216,7 @@ class MarginServiceTest {
         );
 
         // Mock 설정
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail("test@test.com");
-        doReturn(campaigns).when(campaignRepository).findAllByMember(any(Member.class));
+        doReturn(campaigns).when(campaignService).getCampaignsByEmail(any(String.class));
         doReturn(dailySummaries).when(marginRepository).find7daysTotalsByCampaignIds(
                 campaigns.stream().map(Campaign::getCampaignId).toList(),
                 sevenDaysAgo,
@@ -227,8 +228,9 @@ class MarginServiceTest {
         System.out.println("result = " + result);
 
         // Then
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(2);
+        assertThat(result)
+                .isNotEmpty()
+                .hasSize(2);
 
         DailyAdSummaryDto summary1 = result.get(0);
         assertThat(summary1.getMarDate()).isEqualTo(today);
@@ -244,14 +246,14 @@ class MarginServiceTest {
     }
 
 
-
-    private Margin newMargin(LocalDate date, Campaign campaign,Double marsale) {
+    private Margin newMargin(LocalDate date, Campaign campaign, Double marsale) {
         return Margin.builder()
                 .marDate(date)
                 .campaign(campaign)
                 .marSales(marsale)
                 .build();
     }
+
     public Member getMember() {
         return Member.builder()
                 .email("test@test.com")
