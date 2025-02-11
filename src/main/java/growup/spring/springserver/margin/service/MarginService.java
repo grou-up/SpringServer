@@ -1,23 +1,15 @@
 package growup.spring.springserver.margin.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
-import growup.spring.springserver.campaign.repository.CampaignRepository;
 import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
-import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.exception.netsales.NetSalesNotFoundProductName;
-import growup.spring.springserver.login.domain.Member;
-import growup.spring.springserver.login.repository.MemberRepository;
 import growup.spring.springserver.margin.TypeChangeMargin;
 import growup.spring.springserver.margin.domain.Margin;
-import growup.spring.springserver.margin.dto.DailyAdSummaryDto;
-import growup.spring.springserver.margin.dto.DailyMarginSummary;
-import growup.spring.springserver.margin.dto.MarginResponseDto;
-import growup.spring.springserver.margin.dto.MarginSummaryResponseDto;
+import growup.spring.springserver.margin.dto.*;
 import growup.spring.springserver.margin.repository.MarginRepository;
 import growup.spring.springserver.marginforcampaign.domain.MarginForCampaign;
 import growup.spring.springserver.marginforcampaign.dto.MfcDto;
-import growup.spring.springserver.marginforcampaign.dto.MfcRequestDtos;
 import growup.spring.springserver.marginforcampaign.dto.MfcRequestWithDatesDto;
 import growup.spring.springserver.marginforcampaign.repository.MarginForCampaignRepository;
 import growup.spring.springserver.netsales.domain.NetSales;
@@ -250,6 +242,11 @@ public class MarginService {
 
         }
         return summaries;
+    }
+
+    // 기간별 마진의 총 합
+    public List<DailyNetProfitResponseDto> getDailyTotalMarginListResDto(LocalDate start, LocalDate end, String email) {
+        return marginRepository.findTotalMarginByDateRangeAndEmail(start, end, email);
     }
 
     private Margin getMargin(LocalDate targetDate, Campaign campaign) {
