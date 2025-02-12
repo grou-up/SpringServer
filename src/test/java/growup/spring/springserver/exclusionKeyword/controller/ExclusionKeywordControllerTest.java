@@ -106,14 +106,10 @@ public class ExclusionKeywordControllerTest {
                 .campaignId(1L)
                 .build();
         //given
-        doReturn(List.of(ExclusionKeywordResponseDto.builder()
-                        .exclusionKeyword("key")
-                        .campaignId(1L)
-                        .build(),
-                ExclusionKeywordResponseDto.builder()
-                        .exclusionKeyword("key2")
-                        .campaignId(1L)
-                        .build())).when(exclusionKeywordService).addExclusionKeyword(any(ExclusionKeywordRequestDto.class));
+        doReturn(ExclusionKeywordResponseDto.builder()
+                .requestData(5)
+                .responseData(4)
+                .build()).when(exclusionKeywordService).addExclusionKeyword(any(ExclusionKeywordRequestDto.class),any(String.class));
         ResultActions resultActions = mockMvc.perform(post(url)
                 .content(gson.toJson(body))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -122,9 +118,8 @@ public class ExclusionKeywordControllerTest {
         resultActions.andExpectAll(
                 status().isOk(),
                 jsonPath("message").value("success : add exclusionKeyword"),
-                jsonPath("data[0].exclusionKeyword").value("key"),
-                jsonPath("data[1].exclusionKeyword").value("key2"),
-                jsonPath("data[0].campaignId").value(1L)
+                jsonPath("data.requestData").value(5),
+                jsonPath("data.responseData").value(4)
         ).andDo(print());
     }
 
@@ -184,7 +179,7 @@ public class ExclusionKeywordControllerTest {
                 .exclusionKeyword(List.of("key1","key2"))
                 .campaignId(1L)
                 .build();
-        doReturn(true).when(exclusionKeywordService).deleteExclusionKeyword(any(ExclusionKeywordRequestDto.class));
+        doReturn(true).when(exclusionKeywordService).deleteExclusionKeyword(any(ExclusionKeywordRequestDto.class),any(String.class));
         //then
         ResultActions resultActions = mockMvc.perform(delete(url).content(gson.toJson(body))
                 .contentType(MediaType.APPLICATION_JSON)
