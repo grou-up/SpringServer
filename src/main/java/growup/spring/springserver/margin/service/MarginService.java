@@ -2,6 +2,7 @@ package growup.spring.springserver.margin.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.campaign.service.CampaignService;
 import growup.spring.springserver.exception.campaign.CampaignNotFoundException;
 import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.exception.netsales.NetSalesNotFoundProductName;
@@ -38,8 +39,7 @@ import java.util.stream.Collectors;
 public class MarginService {
 
     private final MarginRepository marginRepository;
-    private final MemberRepository memberRepository;
-    private final CampaignRepository campaignRepository;
+    private final CampaignService campaignService;
     private final MarginForCampaignRepository marginForCampaignRepository;
     private final NetRepository netRepository;
 //    private final OAuth2ClientRegistrationRepositoryConfiguration oAuth2ClientRegistrationRepositoryConfiguration;
@@ -87,14 +87,16 @@ public class MarginService {
     }
 
     private List<Campaign> getCampaignsByEmail(String email) {
-        Member member = memberRepository.findByEmail(email).orElseThrow(
-                MemberNotFoundException::new
-        );
-        List<Campaign> campaignList = campaignRepository.findAllByMember(member);
-        if (campaignList.isEmpty()) {
-            throw new CampaignNotFoundException();
-        }
-        return campaignList;
+//        Member member = memberRepository.findByEmail(email).orElseThrow(
+//                MemberNotFoundException::new
+//        );
+//        List<Campaign> campaignList = campaignRepository.findAllByMember(member);
+//        if (campaignList.isEmpty()) {
+//            throw new CampaignNotFoundException();
+//        }
+//        List<Campaign> campaignList = campaignService.getCampaignsByEmail(email);
+//        return campainList;
+        return campaignService.getCampaignsByEmail(email);
     }
 
     private List<Long> extractCampaignIds(List<Campaign> campaignList) {

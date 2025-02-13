@@ -9,6 +9,7 @@ import growup.spring.springserver.exception.login.MemberNotFoundException;
 import growup.spring.springserver.global.exception.ErrorCode;
 import growup.spring.springserver.login.domain.Member;
 import growup.spring.springserver.login.repository.MemberRepository;
+import growup.spring.springserver.login.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,8 @@ class CampaignServiceTest {
     @InjectMocks
     private CampaignService campaignService;
     @Mock
+    private MemberService memberService;
+    @Mock
     private CampaignRepository campaignRepository;
     @Mock
     private MemberRepository memberRepository;
@@ -40,7 +43,7 @@ class CampaignServiceTest {
     @DisplayName("getMyCampaigns(): ErrorCase1.캠패인 목록이 없을 때")
     void test1(){
         //given
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail(any(String.class));
+        doReturn(getMember()).when(memberService).getMemberByEmail(any(String.class));
         doReturn(new ArrayList<Campaign>()).when(campaignRepository).findAllByMember(any(Member.class));
         //when
         final Exception result = assertThrows(CampaignNotFoundException.class,
@@ -53,7 +56,7 @@ class CampaignServiceTest {
     @DisplayName("getMyCampaigns(): ErrorCase2.해당 멤버를 찾지 못 할때")
     void test2(){
         //given
-        doReturn(Optional.empty()).when(memberRepository).findByEmail(any(String.class));
+        doThrow(new MemberNotFoundException()).when(memberService).getMemberByEmail(any(String.class));
         //when
         final MemberNotFoundException result = assertThrows(MemberNotFoundException.class,
                ()-> campaignService.getMyCampaigns("test@test.com"));
@@ -65,7 +68,7 @@ class CampaignServiceTest {
     @DisplayName("getMyCampaigns(): Success")
     void test3(){
         //given
-        doReturn(Optional.of(getMember())).when(memberRepository).findByEmail(any(String.class));
+        doReturn(getMember()).when(memberService).getMemberByEmail(any(String.class));
         doReturn(List.of(
                     Campaign.builder().camCampaignName("campaign1").campaignId(1L).build(),
                     Campaign.builder().camCampaignName("campaign2").campaignId(2L).build(),

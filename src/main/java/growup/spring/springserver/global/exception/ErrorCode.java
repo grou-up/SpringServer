@@ -26,9 +26,12 @@ public enum ErrorCode {
     //Global
     INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST, "날짜 형식이 이상합니다."),
 
-
     //KeywordBid
     KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다."),
+
+    //ExclusionKeyword
+    ALREADY_EXIST_KEYWORD(HttpStatus.BAD_REQUEST,"이미 제외 키워드가 존재합니다"),
+    EXCLUSIONKEY_NOT_FOUND(HttpStatus.BAD_REQUEST,"해당 제외키워드가 없습니다"),
 
     // Execution
     EXECUTION_REQUEST_ERROR(HttpStatus.BAD_REQUEST,"잘못된 요청값 입니다."),
@@ -36,6 +39,7 @@ public enum ErrorCode {
       // MarginForCampaign
     MARGIN_FOR_CAMPAIGN_PRODUCT_NAME_NOT_FOUND(HttpStatus.BAD_REQUEST, "현재 캠페인 제외하고 없는 상품입니다."),
     MARGIN_FOR_CAMPAIGN_ID_NOT_FOUND(HttpStatus.BAD_REQUEST,"없는 ID 입니다."),
+    MARGIN_FOR_CAMPAIGN_FOUND(HttpStatus.BAD_REQUEST,"현재 캠페인의 있는 상품명 입니다."),
 
     // NetSales
     NET_SALES_NOT_FOUND_PRODUCT_NAME(HttpStatus.BAD_REQUEST, "없는 상품아이디 입니다.")

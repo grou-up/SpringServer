@@ -1,6 +1,7 @@
 package growup.spring.springserver.keyword.service;
 
 import growup.spring.springserver.exception.InvalidDateFormatException;
+import growup.spring.springserver.exception.exclusionKeyword.ExclusionKeyNotFound;
 import growup.spring.springserver.exception.keyword.CampaignKeywordNotFoundException;
 import growup.spring.springserver.exclusionKeyword.dto.ExclusionKeywordResponseDto;
 import growup.spring.springserver.exclusionKeyword.service.ExclusionKeywordService;
@@ -42,7 +43,7 @@ public class KeywordService {
         List<ExclusionKeywordResponseDto> exclusionKeywordResponseDtos;
         try {
             exclusionKeywordResponseDtos = exclusionKeywordService.getExclusionKeywords(campaignId);
-        }catch (IllegalArgumentException e){
+        }catch (ExclusionKeyNotFound e){
             exclusionKeywordResponseDtos = List.of();
         }
         return exclusionKeywordResponseDtos.stream()
