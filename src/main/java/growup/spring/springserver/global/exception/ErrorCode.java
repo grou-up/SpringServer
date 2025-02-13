@@ -26,9 +26,12 @@ public enum ErrorCode {
     //Global
     INVALID_DATE_FORMAT(HttpStatus.BAD_REQUEST, "날짜 형식이 이상합니다."),
 
-
     //KeywordBid
     KEYWORDBID_NOT_FOUND(HttpStatus.BAD_REQUEST,"입찰가 정보가 없습니다."),
+
+    //ExclusionKeyword
+    ALREADY_EXIST_KEYWORD(HttpStatus.BAD_REQUEST,"이미 제외 키워드가 존재합니다"),
+    EXCLUSIONKEY_NOT_FOUND(HttpStatus.BAD_REQUEST,"해당 제외키워드가 없습니다"),
 
     // Execution
     EXECUTION_REQUEST_ERROR(HttpStatus.BAD_REQUEST,"잘못된 요청값 입니다."),

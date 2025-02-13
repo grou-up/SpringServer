@@ -2,6 +2,9 @@ package growup.spring.springserver.exclusionKeyword.service;
 
 import growup.spring.springserver.campaign.domain.Campaign;
 import growup.spring.springserver.campaign.repository.CampaignRepository;
+import growup.spring.springserver.campaign.service.CampaignService;
+import growup.spring.springserver.exception.exclusionKeyword.ExclusionKeyNotFound;
+import growup.spring.springserver.exception.exclusionKeyword.ExistExclusionKeyword;
 import growup.spring.springserver.exclusionKeyword.TypeChangeExclusionKeyword;
 import growup.spring.springserver.exclusionKeyword.domain.ExclusionKeyword;
 import growup.spring.springserver.exclusionKeyword.dto.ExclusionKeywordRequestDto;
@@ -20,33 +23,41 @@ public class ExclusionKeywordService {
     private ExclusionKeywordRepository exclusionKeywordRepository;
     @Autowired
     private CampaignRepository campaignRepository;
+    @Autowired
+    private CampaignService campaignService;
 
-    public List<ExclusionKeywordResponseDto> addExclusionKeyword(ExclusionKeywordRequestDto exclusionKeywordRequestDto){
-        Campaign campaign = campaignRepository.findByCampaignId(exclusionKeywordRequestDto.getCampaignId()).orElseThrow(
-                ()-> new IllegalArgumentException("해당 캠패인이 존재하지 않습니다.")
-        );
-        List<ExclusionKeywordResponseDto> exclusionKeywordResponseDtos = new ArrayList<>();
+    public ExclusionKeywordResponseDto addExclusionKeyword(ExclusionKeywordRequestDto exclusionKeywordRequestDto,String email){
+        Campaign campaign = campaignService.getMyCampaign(exclusionKeywordRequestDto.getCampaignId(),email);
+        int addSuccess = 0;
+        int addFail = 0;
         for(String keyword : exclusionKeywordRequestDto.getExclusionKeyword()){
-            if(exclusionKeywordRepository.existsByExclusionKeyword(keyword))
-                throw new IllegalArgumentException("이미 해당 제외키워드가 존재합니다.");
-            ExclusionKeyword exclusionKeyword = ExclusionKeyword.builder()
-                    .exclusionKeyword(keyword)
-                    .campaign(campaign)
-                    .build();
-            ExclusionKeyword result = exclusionKeywordRepository.save(exclusionKeyword);
-            exclusionKeywordResponseDtos.add(TypeChangeExclusionKeyword.entityToResponseDTO(result));
+            try {
+                saveNoExistExclusionKeyword(keyword,campaign);
+                addSuccess++;
+            }catch (ExistExclusionKeyword e){
+                addFail ++;
+            }
         }
-        return exclusionKeywordResponseDtos;
+        return ExclusionKeywordResponseDto.builder()
+                .responseData(addSuccess)
+                .requestData(addFail+addSuccess)
+                .build();
     }
-
+    public void saveNoExistExclusionKeyword(String keyword,Campaign campaign){
+        if(exclusionKeywordRepository.existsByExclusionKeyword(keyword))
+            throw new ExistExclusionKeyword();
+        ExclusionKeyword exclusionKeyword = ExclusionKeyword.builder()
+                .exclusionKeyword(keyword)
+                .campaign(campaign)
+                .build();
+        exclusionKeywordRepository.save(exclusionKeyword);
+    }
     @Transactional
-    public boolean deleteExclusionKeyword(ExclusionKeywordRequestDto exclusionKeywordRequestDto){
-        campaignRepository.findByCampaignId(exclusionKeywordRequestDto.getCampaignId()).orElseThrow(
-                ()-> new IllegalArgumentException("해당 캠패인이 존재하지 않습니다.")
-        );
+    public boolean deleteExclusionKeyword(ExclusionKeywordRequestDto exclusionKeywordRequestDto,String email){
+        campaignService.getMyCampaign(exclusionKeywordRequestDto.getCampaignId(),email);
         for(String removeKey : exclusionKeywordRequestDto.getExclusionKeyword()){
             if(exclusionKeywordRepository.deleteByCampaign_campaignIdANDExclusionKeyword(exclusionKeywordRequestDto.getCampaignId(),removeKey)==0){
-                throw new IllegalArgumentException("해당 제외키워드가 존재하지 않습니다.");
+                throw new ExclusionKeyNotFound();
             }
         }
         return true;
@@ -54,7 +65,7 @@ public class ExclusionKeywordService {
 
     public List<ExclusionKeywordResponseDto> getExclusionKeywords(Long campaignId){
         List<ExclusionKeyword> exclusionKeywords = exclusionKeywordRepository.findAllByCampaign_campaignId(campaignId);
-        if(exclusionKeywords.isEmpty()) throw new IllegalArgumentException("해당 제외키워드가 없습니다");
+        if(exclusionKeywords.isEmpty()) throw new ExclusionKeyNotFound();
         return exclusionKeywords.stream().map(TypeChangeExclusionKeyword::entityToResponseDTO).toList();
     }
 }
