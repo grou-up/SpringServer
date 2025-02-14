@@ -29,7 +29,7 @@ spring:
             client-authentication-method: client_secret_post
             client-name: kakao
             authorization-grant-type: authorization_code
-            redirect-uri: https://server.grouup.co.kr/login/oauth2/code/kakao
+            redirect-uri: http://ec2-13-125-253-6.ap-northeast-2.compute.amazonaws.com/login/oauth2/code/kakao
             scope:
               - profile_nickname
               - account_email
