@@ -10,7 +10,7 @@ public class OAuth2RedirectUrlProvider {
     private static final Map<String, String> REDIRECT_URLS = new HashMap<>();
 
     static {
-        REDIRECT_URLS.put("kakao", "http://localhost:3000/oauth/kakao/callback?token=%s");
+        REDIRECT_URLS.put("kakao", "https://www.grouup.co.kr/oauth/kakao/callback?token=%s");
         REDIRECT_URLS.put("google", "http://localhost:3000/oauth/google/callback?token=%s");
     }
 
