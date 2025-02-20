@@ -4,9 +4,9 @@ spring:
       on-profile: local
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: ${BASEURL}${SCHEMA}
-    username: ${USERNAME}
-    password: ${PASSWORD}
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MariaDBDialect
@@ -24,12 +24,12 @@ spring:
       client:
         registration:
           kakao:
-            client-id: ${CLIENT_ID}
-            client-secret: ${CLIENT_SECRET}
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
             client-authentication-method: client_secret_post
             client-name: kakao
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            redirect-uri: https://server.grouup.co.kr/login/oauth2/code/kakao
             scope:
               - profile_nickname
               - account_email
@@ -58,12 +58,13 @@ logging:
     root: info
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     growup.spring.springserver.global.config: DEBUG
 
 jwt:
-  expiration: ${EXPIRATION}
-  secretKey: ${SECRET_KEY}
+  expiration: ${JWT_EXPIRATION}
+  secretKey: ${JWT_SECRET_KEY}
 
 springdoc:
   swagger-ui:

@@ -91,7 +91,7 @@ public class SecurityConfig {
                 HttpMethod.DELETE.name(),
                 HttpMethod.OPTIONS.name()
         );
-        List<String> ipList = List.of("http://localhost:8000", "http://localhost:3000", "https://grou-up.vercel.app");
+        List<String> ipList = List.of("http://localhost:8000", "https://www.grouup.co.kr");
 
         config.setAllowCredentials(true);
         config.setAllowedMethods(httpMethodList);
@@ -106,7 +106,7 @@ public class SecurityConfig {
 
     private static final String[] LoginApiUrl = {
             "/api/members/signup",
-            "/api/members/test",
+            "/api/members/test1",
             "/api/members/login",
             "/api/oauth/kakao/callback/**",
             "/v3/api-docs/**",          // OpenAPI 문서 JSON

@@ -1,37 +1,72 @@
-name: Branch Created
+# workflow(스크립트 전체)의 이름을 지정
+name: Deploy to EC2 With Jar
+
+# push 이벤트 지정 (트리거 동작)
+# dev branch에 push 될 때마다 workflow가 실행되도록 지정
 on:
-  create:
+  push:
     branches:
-      - 'feature/**'
-      - 'bugfix/**'
+      - main
 
 jobs:
-  update-jira:
+  # 작업의 이름 지정
+  build-and-deploy:
+    # 가상의 작업 공간(가상 서버)에 ubuntu 설치
     runs-on: ubuntu-latest
     steps:
-      - name: Extract Jira Issue
-        id: extract
-        run: |
-          BRANCH_NAME=${{ github.ref_name }}
-          ISSUE_KEY=$(echo $BRANCH_NAME | grep -oP '([A-Z]+-\d+)')
-          echo "Branch name: $BRANCH_NAME"
-          echo "Extracted issue key: $ISSUE_KEY"
-          echo "issue=$ISSUE_KEY" >> $GITHUB_OUTPUT
+      # 소스 코드를 ubuntu로 가져옴
+      - uses: actions/checkout@v2
 
-#      작업 ID를 확인하고 싶을 때 사용
-      - name: Get Available Transitions
-        run: |
-          curl -v -L -X GET \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions"
+      # github 소스 코드를 가상의 작업 공간
+      - name: Set up JDK 17
+        # 쉽게 자바를 설치할 수 있는 라이브러리를 받아와서 java 설치
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Update Jira Status
+      - name: Build with Gradle
+        # 배포할 폴더로 이동
+        working-directory: .
+        # 실행 가능한 jar파일만 생성 (plain jar 미생성)
         run: |
-          curl -v -X POST \
-            -H "Authorization: Basic ${{ secrets.JIRA_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            ${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.extract.outputs.issue }}/transitions \
-            -d '{
-              "transition": {"id": "2"}
-            }'
+          chmod +x ./gradlew 
+          ./gradlew bootJar
+
+      - name: Copy jar to EC2
+        uses: appleboy/scp-action@master
+        with:
+          # Secret 처리
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./build/libs/*.jar"
+          # 우분투 경로
+          target: "/home/${{ secrets.EC2_USERNAME }}"
+
+      - name: Install Java and Run Jar on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # java가 미설치되어 있으면 설치 / 배포할 때마다 소스 코드 변경사항 반영 위해 서버 재구동 (백그라운드로 실행 - nohup)
+          # rds 사용 위해 application.yml의 db 관련 코드 가져오기 (역슬래시는 줄바꿈을 의미)
+          # github action secret key를 주입시킴 (환경 변수 갈아끼우기 - 덮어쓰기 됨)
+          # 마지막에 실행 로그 찍기
+          # 2>&1 &는 nohup과 한 세트 (안써넣으면 nohup이 중간에 멈춤)
+          script: |
+            if ! type java > /dev/null; then
+              sudo apt update && sudo apt install openjdk-17-jdk -y
+            else
+              echo "java is already installed"
+            fi
+            sudo killall java || true
+            nohup java -jar /home/${{ secrets.EC2_USERNAME }}/build/libs/*.jar \
+            --spring.datasource.url=jdbc:mariadb://${{ secrets.DATASOURCE_URL }}:3306/grouup \
+            --spring.datasource.username=${{ secrets.DATASOURCE_USERNAME }} \
+            --spring.datasource.password=${{ secrets.DATASOURCE_PASSWORD }} \
+            --jwt.expiration=${{ secrets.JWT_EXPIRATION }} \
+            --jwt.secretKey=${{ secrets.JWT_SECRET_KEY }} \
+            --spring.security.oauth2.client.registration.kakao.client-id=${{ secrets.KAKAO_CLIENT_ID }} \
+            --spring.security.oauth2.client.registration.kakao.client-secret=${{ secrets.KAKAO_CLIENT_SECRET }} > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &
