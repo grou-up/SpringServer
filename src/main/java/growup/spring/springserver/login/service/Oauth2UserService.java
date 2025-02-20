@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -38,20 +37,32 @@ public class Oauth2UserService extends DefaultOAuth2UserService {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // 클라이언트 ID로 OAuth 공급자 확인 (카카오인지 확인)
+        // OAuth 공급자 확인
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        if (!"kakao".equals(registrationId)) {
-            throw new OAuth2AuthenticationException("Now Only Kakao is supported");
+        log.info("OAuth provider: {}", registrationId);
+
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        String email = null;
+        String nickname = null;
+        String nameAttributeKey;  // 기본 ID 필드 (카카오는 "id" 사용)
+
+        switch (registrationId) {
+            case "kakao" -> {
+                Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+                email = (String) kakaoAccount.get("email");
+                nickname = (String) ((Map<String, Object>) attributes.get("properties")).get("nickname");
+                nameAttributeKey = "id";  // 카카오는 "id"를 기본 키로 사용
+            }
+            case "google" -> {
+                email = (String) attributes.get("email");
+                nickname = (String) attributes.get("name");
+                nameAttributeKey = "sub";  // 구글은 "sub"을 기본 ID로 사용
+            }
+            default -> throw new OAuth2AuthenticationException("Unsupported provider: " + registrationId);
         }
 
-        // 카카오 사용자 정보 처리
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        log.info("Kakao user attributes: {}", attributes);
-
-        // 카카오 계정 정보 추출
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        String email = (String) kakaoAccount.get("email");
-        String nickname = (String) ((Map<String, Object>) attributes.get("properties")).get("nickname");
+        log.info("User email: {}", email);
+        log.info("User nickname: {}", nickname);
 
         // 기존 사용자 체크
         Member member = memberRepository.findByEmail(email).orElse(null);
@@ -62,11 +73,10 @@ public class Oauth2UserService extends DefaultOAuth2UserService {
             memberRepository.save(member);
         }
 
-        // 인증 객체 반환
         return new DefaultOAuth2User(
                 List.of(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "id"
+                nameAttributeKey  // 공급자에 따라 ID 필드 변경
         );
     }
 }
