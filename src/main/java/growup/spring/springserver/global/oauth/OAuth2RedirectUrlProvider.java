@@ -11,7 +11,7 @@ public class OAuth2RedirectUrlProvider {
 
     static {
         REDIRECT_URLS.put("kakao", "https://www.grouup.co.kr/oauth/kakao/callback?token=%s");
-        REDIRECT_URLS.put("google", "http://localhost:3000/oauth/google/callback?token=%s");
+        REDIRECT_URLS.put("google", "https://www.grouup.co.kr/oauth/google/callback?token=%s");
     }
 
     public static String getRedirectUrl(String registrationId, String accessToken) {
